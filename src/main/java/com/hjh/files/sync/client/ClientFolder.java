@@ -72,8 +72,14 @@ public class ClientFolder {
 			root.mkdir();
 		}
 		Asserts.check(root.isDirectory(), "must be a directory :" + store_path);
-
-		doSync(null, root);
+		long time = System.currentTimeMillis();
+		try {
+			doSync(null, root);
+		} finally {
+			long end = System.currentTimeMillis();
+			logger.info(String.format("sync finish[%s](cost: %s) %s => %s", name, (end - time) / 1000 + "s", url,
+					store_path));
+		}
 	}
 
 	private void doSync(RemoteFile from, File target) throws IOException {
@@ -138,30 +144,30 @@ public class ClientFolder {
 						}
 					}
 
-					File remoteFileData = new File(current_cache_root, "current");
-					if (remoteFileData.isDirectory()) {
-						logger.info("remove directory:" + remoteFileData.getAbsolutePath());
-						FileUtils.deleteDirectory(remoteFileData);
+					File target_temp = new File(current_cache_root, "temp");
+					if (target_temp.isDirectory()) {
+						logger.info("remove directory:" + target_temp.getAbsolutePath());
+						FileUtils.deleteDirectory(target_temp);
 					}
 
-					if (remoteFileData.isFile()) {
-						String cache_md5 = MD5.md5(remoteFileData);
+					if (target_temp.isFile()) {
+						String cache_md5 = MD5.md5(target_temp);
 						if (!md5.equals(cache_md5)) {
-							Asserts.check(remoteFileData.delete(),
-									"can not delete error file[md5 do not match]:" + remoteFileData.getAbsolutePath());
+							Asserts.check(target_temp.delete(),
+									"can not delete wrong file[md5 do not match]:" + target_temp.getAbsolutePath());
 						}
 					}
 
-					if (!remoteFileData.exists()) {
+					if (!target_temp.exists()) {
+						target_temp.createNewFile();
 						for (int i = 0; i < totalParts; i++) {
 							File cur_part = new File(current_cache_root, i + "");
-							FileUtils.writeByteArrayToFile(remoteFileData, FileUtils.readFileToByteArray(cur_part),
-									true);
+							FileUtils.writeByteArrayToFile(target_temp, FileUtils.readFileToByteArray(cur_part), true);
 						}
 					}
 
 					{
-						String cache_md5 = MD5.md5(remoteFileData);
+						String cache_md5 = MD5.md5(target_temp);
 						if (!md5.equals(cache_md5)) {
 							logger.info("clear dirty directory : " + current_cache_root.getAbsolutePath());
 							FileUtils.deleteDirectory(current_cache_root);
@@ -169,7 +175,15 @@ public class ClientFolder {
 						}
 					}
 
-					FileUtils.copyFile(remoteFileData, target);
+					if (target.isFile()) {
+						logger.info("remove unmatch file:" + target.getAbsolutePath());
+						Asserts.check(target.delete(),
+								String.format("can not delete file : %s", target.getAbsolutePath()));
+					}
+
+					Asserts.check(target_temp.renameTo(target), String.format("can not move file: %s => %s",
+							target_temp.getAbsolutePath(), target.getAbsolutePath()));
+
 				}
 				target.setLastModified(from.lastModify());
 			}
