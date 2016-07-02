@@ -4,6 +4,10 @@ public class HLogFactory {
 
 	private static ILogFactory instance;
 
+	public static boolean isInstanceNull() {
+		return null == instance;
+	}
+
 	public static ILog create(Class<?> type) {
 		return instance.create(type);
 	}

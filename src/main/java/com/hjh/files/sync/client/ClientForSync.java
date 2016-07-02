@@ -1,56 +1,23 @@
 package com.hjh.files.sync.client;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.util.Asserts;
 
-import com.hjh.files.sync.common.HLogFactory;
-import com.hjh.files.sync.common.ILog;
-import com.hjh.files.sync.common.ILogFactory;
+import com.hjh.files.sync.common.log.LogUtil;
+import com.hjh.files.sync.common.util.PropertiesUtils;
 
 public class ClientForSync {
 
 	private static final String PORP_KEY_PREFIX = "client.folder.";
 
-	static {
-		HLogFactory.setInstance(new ILogFactory() {
-
-			public ILog create(Class<?> type) {
-
-				final Log logger = LogFactory.getLog(type);
-
-				return new ILog() {
-
-					@Override
-					public void debug(String msg) {
-						logger.debug(msg);
-					}
-
-					@Override
-					public void info(String msg) {
-						logger.info(msg);
-					}
-
-					@Override
-					public void error(String msg, Throwable e) {
-						logger.error(msg, e);
-					}
-
-				};
-			}
-
-		});
-	}
-
 	public static void main(String argv[]) throws IOException {
+		LogUtil.initLog();
+
 		String prop = "remote_sync_for_client.properties";
 		if (null != argv && 1 == argv.length) {
 			prop = argv[0];
@@ -72,20 +39,7 @@ public class ClientForSync {
 	}
 
 	public ClientForSync(String propPath) throws IOException {
-		Properties p = new Properties();
-		if (new File(propPath).exists()) {
-			InputStream in = null;
-			try {
-				in = new FileInputStream(new File(propPath));
-				p.load(in);
-			} finally {
-				if (null != in) {
-					in.close();
-				}
-			}
-		} else {
-			p.load(this.getClass().getClassLoader().getResourceAsStream(propPath));
-		}
+		Properties p = PropertiesUtils.load(propPath);
 
 		store = p.getProperty("client.store");
 
@@ -100,7 +54,7 @@ public class ClientForSync {
 			}
 		}
 
-		Asserts.check(folders.size() != 0, "can not find any folders");
+		Asserts.check(folders.size() != 0, "can not find any client folders");
 	}
 
 }
