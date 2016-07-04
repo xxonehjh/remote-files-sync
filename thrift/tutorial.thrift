@@ -56,7 +56,6 @@
  * Included objects are accessed using the name of the .thrift file as a
  * prefix. i.e. shared.SharedObject
  */
-include "shared.thrift"
 
 /**
  * Thrift files can namespace, package, or prefix their output in various
@@ -97,11 +96,12 @@ enum Operation {
  * in the serialized output if they aren't set.  Note that this requires some
  * manual management in some languages.
  */
-struct Work {
-  1: i32 num1 = 0,
-  2: i32 num2,
-  3: Operation op,
-  4: optional string comment,
+struct RemoteFileInfo {
+  1: string name,
+  2: string path,
+  3: i64 length,
+  4: i64 lastModify,
+  5: bool isFolder
 }
 
 /**
@@ -116,7 +116,7 @@ exception InvalidOperation {
  * Ahh, now onto the cool part, defining a service. Services just need a name
  * and can optionally inherit from another service using the extends keyword.
  */
-service SyncFileServer extends shared.SharedService {
+service SyncFileServer {
 
   /**
    * A method definition looks like C code. It has a return type, arguments,
@@ -133,7 +133,7 @@ service SyncFileServer extends shared.SharedService {
    
    binary part(1:string folder, 2:string path, 3:i32 part),
    
-   string listFiles(1:string folder, 2:string path)
+   list<RemoteFileInfo> listFiles(1:string folder, 2:string path)
 
 }
 

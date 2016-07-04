@@ -41,7 +41,7 @@ public class SyncFileServer {
    * Ahh, now onto the cool part, defining a service. Services just need a name
    * and can optionally inherit from another service using the extends keyword.
    */
-  public interface Iface extends shared.SharedService.Iface {
+  public interface Iface {
 
     /**
      * A method definition looks like C code. It has a return type, arguments,
@@ -57,11 +57,11 @@ public class SyncFileServer {
 
     public ByteBuffer part(String folder, String path, int part) throws org.apache.thrift.TException;
 
-    public String listFiles(String folder, String path) throws org.apache.thrift.TException;
+    public List<RemoteFileInfo> listFiles(String folder, String path) throws org.apache.thrift.TException;
 
   }
 
-  public interface AsyncIface extends shared.SharedService .AsyncIface {
+  public interface AsyncIface {
 
     public void ping(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -75,7 +75,7 @@ public class SyncFileServer {
 
   }
 
-  public static class Client extends shared.SharedService.Client implements Iface {
+  public static class Client extends org.apache.thrift.TServiceClient implements Iface {
     public static class Factory implements org.apache.thrift.TServiceClientFactory<Client> {
       public Factory() {}
       public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
@@ -187,7 +187,7 @@ public class SyncFileServer {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "part failed: unknown result");
     }
 
-    public String listFiles(String folder, String path) throws org.apache.thrift.TException
+    public List<RemoteFileInfo> listFiles(String folder, String path) throws org.apache.thrift.TException
     {
       send_listFiles(folder, path);
       return recv_listFiles();
@@ -201,7 +201,7 @@ public class SyncFileServer {
       sendBase("listFiles", args);
     }
 
-    public String recv_listFiles() throws org.apache.thrift.TException
+    public List<RemoteFileInfo> recv_listFiles() throws org.apache.thrift.TException
     {
       listFiles_result result = new listFiles_result();
       receiveBase(result, "listFiles");
@@ -212,7 +212,7 @@ public class SyncFileServer {
     }
 
   }
-  public static class AsyncClient extends shared.SharedService.AsyncClient implements AsyncIface {
+  public static class AsyncClient extends org.apache.thrift.async.TAsyncClient implements AsyncIface {
     public static class Factory implements org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
       private org.apache.thrift.async.TAsyncClientManager clientManager;
       private org.apache.thrift.protocol.TProtocolFactory protocolFactory;
@@ -391,7 +391,7 @@ public class SyncFileServer {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public List<RemoteFileInfo> getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -403,7 +403,7 @@ public class SyncFileServer {
 
   }
 
-  public static class Processor<I extends Iface> extends shared.SharedService.Processor<I> implements org.apache.thrift.TProcessor {
+  public static class Processor<I extends Iface> extends org.apache.thrift.TBaseProcessor<I> implements org.apache.thrift.TProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
     public Processor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
@@ -525,7 +525,7 @@ public class SyncFileServer {
 
   }
 
-  public static class AsyncProcessor<I extends AsyncIface> extends shared.SharedService.AsyncProcessor<I> {
+  public static class AsyncProcessor<I extends AsyncIface> extends org.apache.thrift.TBaseAsyncProcessor<I> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncProcessor.class.getName());
     public AsyncProcessor(I iface) {
       super(iface, getProcessMap(new HashMap<String, org.apache.thrift.AsyncProcessFunction<I, ? extends org.apache.thrift.TBase, ?>>()));
@@ -748,7 +748,7 @@ public class SyncFileServer {
       }
     }
 
-    public static class listFiles<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, listFiles_args, String> {
+    public static class listFiles<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, listFiles_args, List<RemoteFileInfo>> {
       public listFiles() {
         super("listFiles");
       }
@@ -757,10 +757,10 @@ public class SyncFileServer {
         return new listFiles_args();
       }
 
-      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<List<RemoteFileInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
-          public void onComplete(String o) {
+        return new AsyncMethodCallback<List<RemoteFileInfo>>() { 
+          public void onComplete(List<RemoteFileInfo> o) {
             listFiles_result result = new listFiles_result();
             result.success = o;
             try {
@@ -794,7 +794,7 @@ public class SyncFileServer {
         return false;
       }
 
-      public void start(I iface, listFiles_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+      public void start(I iface, listFiles_args args, org.apache.thrift.async.AsyncMethodCallback<List<RemoteFileInfo>> resultHandler) throws TException {
         iface.listFiles(args.folder, args.path,resultHandler);
       }
     }
@@ -4358,7 +4358,7 @@ public class SyncFileServer {
   public static class listFiles_result implements org.apache.thrift.TBase<listFiles_result, listFiles_result._Fields>, java.io.Serializable, Cloneable, Comparable<listFiles_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("listFiles_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4366,7 +4366,7 @@ public class SyncFileServer {
       schemes.put(TupleScheme.class, new listFiles_resultTupleSchemeFactory());
     }
 
-    public String success; // required
+    public List<RemoteFileInfo> success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -4431,7 +4431,8 @@ public class SyncFileServer {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RemoteFileInfo.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(listFiles_result.class, metaDataMap);
     }
@@ -4440,7 +4441,7 @@ public class SyncFileServer {
     }
 
     public listFiles_result(
-      String success)
+      List<RemoteFileInfo> success)
     {
       this();
       this.success = success;
@@ -4451,7 +4452,11 @@ public class SyncFileServer {
      */
     public listFiles_result(listFiles_result other) {
       if (other.isSetSuccess()) {
-        this.success = other.success;
+        List<RemoteFileInfo> __this__success = new ArrayList<RemoteFileInfo>(other.success.size());
+        for (RemoteFileInfo other_element : other.success) {
+          __this__success.add(new RemoteFileInfo(other_element));
+        }
+        this.success = __this__success;
       }
     }
 
@@ -4464,11 +4469,26 @@ public class SyncFileServer {
       this.success = null;
     }
 
-    public String getSuccess() {
+    public int getSuccessSize() {
+      return (this.success == null) ? 0 : this.success.size();
+    }
+
+    public java.util.Iterator<RemoteFileInfo> getSuccessIterator() {
+      return (this.success == null) ? null : this.success.iterator();
+    }
+
+    public void addToSuccess(RemoteFileInfo elem) {
+      if (this.success == null) {
+        this.success = new ArrayList<RemoteFileInfo>();
+      }
+      this.success.add(elem);
+    }
+
+    public List<RemoteFileInfo> getSuccess() {
       return this.success;
     }
 
-    public listFiles_result setSuccess(String success) {
+    public listFiles_result setSuccess(List<RemoteFileInfo> success) {
       this.success = success;
       return this;
     }
@@ -4494,7 +4514,7 @@ public class SyncFileServer {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((List<RemoteFileInfo>)value);
         }
         break;
 
@@ -4649,8 +4669,19 @@ public class SyncFileServer {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
+                  struct.success = new ArrayList<RemoteFileInfo>(_list0.size);
+                  RemoteFileInfo _elem1;
+                  for (int _i2 = 0; _i2 < _list0.size; ++_i2)
+                  {
+                    _elem1 = new RemoteFileInfo();
+                    _elem1.read(iprot);
+                    struct.success.add(_elem1);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -4673,7 +4704,14 @@ public class SyncFileServer {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
+            for (RemoteFileInfo _iter3 : struct.success)
+            {
+              _iter3.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -4699,7 +4737,13 @@ public class SyncFileServer {
         }
         oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          {
+            oprot.writeI32(struct.success.size());
+            for (RemoteFileInfo _iter4 : struct.success)
+            {
+              _iter4.write(oprot);
+            }
+          }
         }
       }
 
@@ -4708,7 +4752,17 @@ public class SyncFileServer {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          {
+            org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<RemoteFileInfo>(_list5.size);
+            RemoteFileInfo _elem6;
+            for (int _i7 = 0; _i7 < _list5.size; ++_i7)
+            {
+              _elem6 = new RemoteFileInfo();
+              _elem6.read(iprot);
+              struct.success.add(_elem6);
+            }
+          }
           struct.setSuccessIsSet(true);
         }
       }

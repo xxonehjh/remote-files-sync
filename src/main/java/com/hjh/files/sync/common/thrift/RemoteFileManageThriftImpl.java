@@ -64,7 +64,7 @@ public class RemoteFileManageThriftImpl implements RemoteFileManage {
 	public RemoteFile[] list(String parent) {
 		try {
 			client.ping();
-			return RemoteFileUtil.parseRemoteFiles(client.listFiles(folder, parent));
+			return RemoteFileUtil.from(client.listFiles(folder, parent));
 		} catch (TException e) {
 			throw new RuntimeException(e);
 		}
