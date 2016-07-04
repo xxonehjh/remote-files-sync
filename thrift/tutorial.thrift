@@ -129,9 +129,11 @@ service SyncFileServer extends shared.SharedService {
    
    string md5(1:string folder, 2:string path),
    
-   i32 partCount(1:string folder, 2:string path),
+   i32 partCount(1:string folder, 2:i64 len),
    
-   binary part(1:string folder, 2:string path, 3:i32 part)
+   binary part(1:string folder, 2:string path, 3:i32 part),
+   
+   string listFiles(1:string folder, 2:string path)
 
 }
 

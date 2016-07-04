@@ -8,22 +8,27 @@ import java.util.Properties;
 
 import org.apache.http.util.Asserts;
 
+import com.hjh.files.sync.common.RemoteFileFactory;
 import com.hjh.files.sync.common.log.LogUtil;
 import com.hjh.files.sync.common.util.PropertiesUtils;
 
 public class ClientForSync {
 
+	static {
+		LogUtil.initLog();
+	}
+
 	private static final String PORP_KEY_PREFIX = "client.folder.";
 
 	public static void main(String argv[]) throws IOException {
-		LogUtil.initLog();
 
 		String prop = "remote_sync_for_client.properties";
 		if (null != argv && 1 == argv.length) {
 			prop = argv[0];
 		}
 		ClientForSync client = new ClientForSync(prop);
-		client.get("local").sync();
+		//client.get("local").sync();
+		client.get("images").sync();
 	}
 
 	private String store;
@@ -55,6 +60,8 @@ public class ClientForSync {
 		}
 
 		Asserts.check(folders.size() != 0, "can not find any client folders");
+
+		RemoteFileFactory.setTruststore(p.getProperty("client.truststore"));
 	}
 
 }

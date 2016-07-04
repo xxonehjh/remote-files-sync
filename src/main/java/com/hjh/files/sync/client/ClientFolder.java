@@ -85,13 +85,14 @@ public class ClientFolder {
 	private void doSync(RemoteFile from, File target) throws IOException {
 
 		if (null == from || from.isFolder()) { // 目录同步
-			RemoteFile[] remotes = fromManage.list(from);
+			String path = null == from ? null : from.path();
+			RemoteFile[] remotes = fromManage.list(path);
 			if (target.isFile()) {
 				logger.info("remove file:" + target.getAbsolutePath());
 				Asserts.check(target.delete(), "delete file fail : " + target.getAbsolutePath());
 			}
 			if (!target.exists()) {
-				logger.info(String.format("sync folder[%s] %s => %s", name, from.path(), target.getAbsolutePath()));
+				logger.info(String.format("sync folder[%s] %s => %s", name, path, target.getAbsolutePath()));
 				Asserts.check(target.mkdir(), "create folder fail : " + target.getAbsolutePath());
 			}
 			String[] exists = target.list();
@@ -123,7 +124,7 @@ public class ClientFolder {
 		} else { // 文件同步
 			if (!isSame(from, target)) {
 				logger.info(String.format("sync file[%s] %s => %s", name, from.path(), target.getAbsolutePath()));
-				String md5 = fromManage.md5(from);
+				String md5 = fromManage.md5(from.path());
 
 				if (target.isDirectory()) {
 					logger.info("remove directory:" + target.getAbsolutePath());
@@ -136,11 +137,14 @@ public class ClientFolder {
 					if (!current_cache_root.exists()) {
 						current_cache_root.mkdir();
 					}
-					int totalParts = fromManage.partCount(from);
+					int totalParts = fromManage.partCount(from.length());
 					for (int i = 0; i < totalParts; i++) {
 						File cur_part = new File(current_cache_root, i + "");
 						if (!cur_part.exists()) {
-							FileUtils.writeByteArrayToFile(cur_part, fromManage.part(from, i));
+							byte[] part_data = fromManage.part(from.path(), i);
+							logger.info(String.format("[%s] [%s] receive part data %d", name, from.path(),
+									part_data.length));
+							FileUtils.writeByteArrayToFile(cur_part, part_data);
 						}
 					}
 

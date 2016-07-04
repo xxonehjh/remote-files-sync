@@ -1,22 +1,39 @@
 package com.hjh.files.sync.server;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.http.util.Asserts;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TServer.Args;
+import org.apache.thrift.server.TSimpleServer;
+import org.apache.thrift.transport.TSSLTransportFactory;
+import org.apache.thrift.transport.TSSLTransportFactory.TSSLTransportParameters;
+import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TServerTransport;
+import org.apache.thrift.transport.TTransportException;
 
+import com.hjh.files.sync.common.HLogFactory;
+import com.hjh.files.sync.common.ILog;
+import com.hjh.files.sync.common.RemoteFileManage;
 import com.hjh.files.sync.common.log.LogUtil;
 import com.hjh.files.sync.common.util.PropertiesUtils;
 
-public class ServerForSync {
+import tutorial.SyncFileServer;
 
+public class ServerForSync {
+	
+	static{
+		LogUtil.initLog();
+	}
+
+	private static ILog logger = HLogFactory.create(ServerForSync.class);
 	private static final String PORP_KEY_PREFIX = "server.folder.";
 
-	public static void main(String argv[]) throws IOException {
-
-		LogUtil.initLog();
+	public static void main(String argv[]) throws IOException, TTransportException {
 
 		String prop = "remote_sync_for_server.properties";
 		if (null != argv && 1 == argv.length) {
@@ -28,26 +45,93 @@ public class ServerForSync {
 	}
 
 	private int port;
-	private List<ServerFolder> folders;
+	private String keystore;
+	private Map<String, ServerFolder> folders;
 
 	public ServerForSync(String propPath) throws IOException {
 		Properties p = PropertiesUtils.load(propPath);
 
 		port = Integer.parseInt(p.getProperty("server.port"));
+		keystore = p.getProperty("server.keystore");
 
-		folders = new ArrayList<ServerFolder>();
+		folders = new HashMap<String, ServerFolder>();
 		for (Object item : p.keySet().toArray()) {
 			if (item.toString().startsWith(PORP_KEY_PREFIX)) {
-				folders.add(
-						new ServerFolder(item.toString().substring(PORP_KEY_PREFIX.length()), (String) p.get(item)));
+				ServerFolder cur = new ServerFolder(item.toString().substring(PORP_KEY_PREFIX.length()),
+						(String) p.get(item));
+				folders.put(cur.getName(), cur);
 			}
 		}
 
 		Asserts.check(folders.size() != 0, "can not find any server folders");
 	}
 
-	public void start() {
+	public void start() throws TTransportException {
 
+		SyncFileServerHandler handler = new SyncFileServerHandler(this);
+		SyncFileServer.Processor<SyncFileServerHandler> processor = new SyncFileServer.Processor<SyncFileServerHandler>(
+				handler);
+
+		if (null == this.keystore) {
+			simple(processor, port);
+		} else {
+			secure(processor, port, keystore);
+		}
+	}
+
+	public static void simple(SyncFileServer.Processor<SyncFileServerHandler> processor, int port)
+			throws TTransportException {
+
+		TServerTransport serverTransport = new TServerSocket(port);
+		TServer server = new TSimpleServer(new Args(serverTransport).processor(processor));
+
+		// Use this for a multithreaded server
+		// TServer server = new TThreadPoolServer(new
+		// TThreadPoolServer.Args(serverTransport).processor(processor));
+
+		logger.info("Starting the simple server...");
+		server.serve();
+	}
+
+	public static void secure(SyncFileServer.Processor<SyncFileServerHandler> processor, int port, String keystore)
+			throws TTransportException {
+		/*
+		 * Use TSSLTransportParameters to setup the required SSL parameters. In
+		 * this example we are setting the keystore and the keystore password.
+		 * Other things like algorithms, cipher suites, client auth etc can be
+		 * set.
+		 */
+		TSSLTransportParameters params = new TSSLTransportParameters();
+		
+		logger.info("user key:" + keystore);
+		Asserts.check(new File(keystore).exists(), "can not find :" + keystore);
+		
+		// The Keystore contains the private key
+		params.setKeyStore(keystore, "thrift", null, null);
+
+		/*
+		 * Use any of the TSSLTransportFactory to get a server transport with
+		 * the appropriate SSL configuration. You can use the default settings
+		 * if properties are set in the command line. Ex:
+		 * -Djavax.net.ssl.keyStore=.keystore and
+		 * -Djavax.net.ssl.keyStorePassword=thrift
+		 * 
+		 * Note: You need not explicitly call open(). The underlying server
+		 * socket is bound on return from the factory class.
+		 */
+		TServerTransport serverTransport = TSSLTransportFactory.getServerSocket(port, 0, null, params);
+		TServer server = new TSimpleServer(new Args(serverTransport).processor(processor));
+
+		// Use this for a multi threaded server
+		// TServer server = new TThreadPoolServer(new
+		// TThreadPoolServer.Args(serverTransport).processor(processor));
+
+		logger.info("Starting the secure server...");
+		server.serve();
+	}
+
+	public RemoteFileManage get(String folder) {
+		return this.folders.get(folder).get();
 	}
 
 }

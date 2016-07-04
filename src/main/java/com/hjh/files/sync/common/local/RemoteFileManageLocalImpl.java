@@ -21,8 +21,8 @@ public class RemoteFileManageLocalImpl implements RemoteFileManage {
 		Asserts.check(root.isDirectory(), "is not a folder :" + root_path);
 	}
 
-	public RemoteFile[] list(RemoteFile parent) {
-		File current = toFile(parent);
+	public RemoteFile[] list(String parentFilePath) {
+		File current = toFile(parentFilePath);
 		Asserts.check(current.isDirectory(), "is not a folder :" + current.getAbsolutePath());
 		File[] list = current.listFiles();
 		RemoteFile[] result = new RemoteFile[list == null ? 0 : list.length];
@@ -35,21 +35,22 @@ public class RemoteFileManageLocalImpl implements RemoteFileManage {
 		return result;
 	}
 
-	public String md5(RemoteFile file) {
+	public String md5(String filePath) {
 		try {
-			return MD5.md5(toFile(file));
+			return MD5.md5(toFile(filePath));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public int partCount(RemoteFile file) {
-		return RemoteFileUtil.countPart(file.length());
+	public int partCount(long len) {
+		return RemoteFileUtil.countPart(len);
 	}
 
-	public byte[] part(RemoteFile file, int part) {
+	public byte[] part(String filePath, int part) {
 		long start = RemoteFileUtil.PART_SIZE * part;
 		long end = start + RemoteFileUtil.PART_SIZE;
+		File file = toFile(filePath);
 		if (file.length() < start) {
 			return new byte[0];
 		}
@@ -57,7 +58,7 @@ public class RemoteFileManageLocalImpl implements RemoteFileManage {
 		byte[] cache = new byte[(int) (end - start)];
 		FileInputStream in = null;
 		try {
-			in = new FileInputStream(toFile(file));
+			in = new FileInputStream(file);
 			in.skip(start);
 			in.read(cache, 0, cache.length);
 			return cache;
@@ -74,11 +75,11 @@ public class RemoteFileManageLocalImpl implements RemoteFileManage {
 		}
 	}
 
-	private File toFile(RemoteFile file) {
-		if (null == file) {
+	private File toFile(String filePath) {
+		if (null == filePath) {
 			return root;
 		}
-		return new File(root, file.path());
+		return new File(root, filePath);
 	}
 
 	private RemoteFile toFile(final File file) {

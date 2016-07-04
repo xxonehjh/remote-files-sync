@@ -2,12 +2,12 @@ package com.hjh.files.sync.common;
 
 public interface RemoteFileManage {
 
-	public RemoteFile[] list(RemoteFile parent);
+	public RemoteFile[] list(String parent);
 
-	public String md5(RemoteFile file);
+	public String md5(String file);
 
-	public int partCount(RemoteFile file);
+	public int partCount(long file);
 
-	public byte[] part(RemoteFile file, int part);
+	public byte[] part(String file, int part);
 
 }
