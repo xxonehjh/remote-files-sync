@@ -93,7 +93,7 @@ public class ServerForSync {
 		server.serve();
 	}
 
-	public static void secure(SyncFileServer.Processor<SyncFileServerHandler> processor, int port, String keystore)
+	public static void secure(SyncFileServer.Processor<SyncFileServerHandler> processor, int port, String keystoreConfig)
 			throws TTransportException {
 		/*
 		 * Use TSSLTransportParameters to setup the required SSL parameters. In
@@ -103,11 +103,13 @@ public class ServerForSync {
 		 */
 		TSSLTransportParameters params = new TSSLTransportParameters();
 		
+		String keystoreConfigArr[] = keystoreConfig.split("@");
+		String keystore = keystoreConfigArr[0];
 		logger.info("user key:" + keystore);
 		Asserts.check(new File(keystore).exists(), "can not find :" + keystore);
 		
 		// The Keystore contains the private key
-		params.setKeyStore(keystore, "thrift", null, null);
+		params.setKeyStore(keystore, keystoreConfigArr[1], null, null);
 
 		/*
 		 * Use any of the TSSLTransportFactory to get a server transport with

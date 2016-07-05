@@ -36,8 +36,9 @@ public class RemoteFileManageThriftImpl implements RemoteFileManage {
 			 * along with the public key. For this example it's a self-signed
 			 * cert.
 			 */
+			String truststore_arr[] = truststore.split("@");
 			TSSLTransportParameters params = new TSSLTransportParameters();
-			params.setTrustStore(truststore, "thrift", "SunX509", "JKS");
+			params.setTrustStore(truststore_arr[0], truststore_arr[1], "SunX509", "JKS");
 			/*
 			 * Get a client transport instead of a server transport. The
 			 * connection is opened on invocation of the factory method, no need
