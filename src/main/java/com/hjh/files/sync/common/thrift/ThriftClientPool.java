@@ -29,6 +29,7 @@ public class ThriftClientPool {
 		private SyncFileServer.Client client;
 
 		public ClientItem(String ip, int port, String truststore) {
+			logger.stdout("reg:" + ip + ":" + port + ":with:" + truststore);
 			this.ip = ip;
 			this.port = port;
 			this.truststore = truststore;
