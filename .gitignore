@@ -16,3 +16,4 @@ tools/
 target/
 
 thrift/gen-java/
+app/

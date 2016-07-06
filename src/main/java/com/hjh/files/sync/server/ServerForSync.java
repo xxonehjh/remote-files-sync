@@ -20,13 +20,14 @@ import com.hjh.files.sync.common.HLogFactory;
 import com.hjh.files.sync.common.ILog;
 import com.hjh.files.sync.common.RemoteFileManage;
 import com.hjh.files.sync.common.log.LogUtil;
+import com.hjh.files.sync.common.thrift.ThriftClientPool;
 import com.hjh.files.sync.common.util.PropertiesUtils;
 
 import tutorial.SyncFileServer;
 
 public class ServerForSync {
-	
-	static{
+
+	static {
 		LogUtil.initLog();
 	}
 
@@ -35,12 +36,17 @@ public class ServerForSync {
 
 	public static void main(String argv[]) throws IOException, TTransportException {
 
-		String prop = "remote_sync_for_server.properties";
+		String prop = "remote_sync.properties";
 		if (null != argv && 1 == argv.length) {
 			prop = argv[0];
 		}
-		ServerForSync server = new ServerForSync(prop);
-		server.start();
+
+		try {
+			ServerForSync server = new ServerForSync(prop);
+			server.start();
+		} finally {
+			ThriftClientPool.closeAll();
+		}
 
 	}
 
@@ -93,8 +99,8 @@ public class ServerForSync {
 		server.serve();
 	}
 
-	public static void secure(SyncFileServer.Processor<SyncFileServerHandler> processor, int port, String keystoreConfig)
-			throws TTransportException {
+	public static void secure(SyncFileServer.Processor<SyncFileServerHandler> processor, int port,
+			String keystoreConfig) throws TTransportException {
 		/*
 		 * Use TSSLTransportParameters to setup the required SSL parameters. In
 		 * this example we are setting the keystore and the keystore password.
@@ -102,12 +108,12 @@ public class ServerForSync {
 		 * set.
 		 */
 		TSSLTransportParameters params = new TSSLTransportParameters();
-		
+
 		String keystoreConfigArr[] = keystoreConfig.split("@");
 		String keystore = keystoreConfigArr[0];
 		logger.info("user key:" + keystore);
 		Asserts.check(new File(keystore).exists(), "can not find :" + keystore);
-		
+
 		// The Keystore contains the private key
 		params.setKeyStore(keystore, keystoreConfigArr[1], null, null);
 

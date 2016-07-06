@@ -10,6 +10,7 @@ import org.apache.http.util.Asserts;
 
 import com.hjh.files.sync.common.RemoteFileFactory;
 import com.hjh.files.sync.common.log.LogUtil;
+import com.hjh.files.sync.common.thrift.ThriftClientPool;
 import com.hjh.files.sync.common.util.PropertiesUtils;
 
 public class ClientForSync {
@@ -22,13 +23,18 @@ public class ClientForSync {
 
 	public static void main(String argv[]) throws IOException {
 
-		String prop = "remote_sync_for_client.properties";
+		String prop = "remote_sync.properties";
 		if (null != argv && 1 == argv.length) {
 			prop = argv[0];
 		}
-		ClientForSync client = new ClientForSync(prop);
-		//client.get("local").sync();
-		client.get("images").sync();
+
+		try {
+			ClientForSync client = new ClientForSync(prop);
+			// client.get("local").sync();
+			client.get("images").sync();
+		} finally {
+			ThriftClientPool.closeAll();
+		}
 	}
 
 	private String store;
