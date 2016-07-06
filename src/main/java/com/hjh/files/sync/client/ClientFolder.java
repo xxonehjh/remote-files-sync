@@ -66,7 +66,7 @@ public class ClientFolder {
 		if (null == fromManage) {
 			fromManage = RemoteFileFactory.queryManage(url);
 		}
-		logger.info(String.format("sync[%s] %s => %s", name, url, store_path));
+		logger.stdout(String.format("sync[%s] %s => %s", name, url, store_path));
 		File root = new File(store_path);
 		if (!root.exists()) {
 			root.mkdir();
@@ -77,7 +77,7 @@ public class ClientFolder {
 			doSync(null, root);
 		} finally {
 			long end = System.currentTimeMillis();
-			logger.info(String.format("sync finish[%s](cost: %s) %s => %s", name, (end - time) / 1000 + "s", url,
+			logger.stdout(String.format("sync finish[%s](cost: %s) %s => %s", name, (end - time) / 1000 + "s", url,
 					store_path));
 		}
 	}

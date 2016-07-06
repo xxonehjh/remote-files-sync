@@ -36,6 +36,11 @@ public class LogUtil {
 						logger.error(msg, e);
 					}
 
+					@Override
+					public void stdout(String msg) {
+						logger.info(msg);
+					}
+
 				};
 			}
 
