@@ -79,7 +79,11 @@ public class ThriftClientPool {
 				 */
 				String truststore_arr[] = truststore.split("@");
 				TSSLTransportParameters params = new TSSLTransportParameters();
-				params.setTrustStore(truststore_arr[0], truststore_arr[1], "SunX509", "JKS");
+				if(truststore_arr[0].endsWith(".truststore")){
+					params.setTrustStore(truststore_arr[0], truststore_arr[1], "SunX509", "JKS");
+				}else{
+					params.setTrustStore(truststore_arr[0], truststore_arr[1], "X509", "BKS");
+				}
 				/*
 				 * Get a client transport instead of a server transport. The
 				 * connection is opened on invocation of the factory method, no

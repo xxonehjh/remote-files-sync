@@ -31,8 +31,10 @@ public class ClientFolder {
 		this.url = url;
 		this.cache = new File(store_folder, CLIENT_CACHE_FOLDER_NAME);
 		if (!this.cache.isDirectory()) {
-			Asserts.check(this.cache.mkdir(),
-					"can not create cache folder for client on :" + this.cache.getAbsolutePath());
+			Asserts.check(
+					this.cache.mkdir(),
+					"can not create cache folder for client on :"
+							+ this.cache.getAbsolutePath());
 		}
 	}
 
@@ -62,7 +64,8 @@ public class ClientFolder {
 
 	public void sync() throws IOException {
 
-		String store_path = new File(new File(store_folder), name).getCanonicalPath();
+		String store_path = new File(new File(store_folder), name)
+				.getCanonicalPath();
 		if (null == fromManage) {
 			fromManage = RemoteFileFactory.queryManage(url);
 		}
@@ -77,8 +80,8 @@ public class ClientFolder {
 			doSync(null, root);
 		} finally {
 			long end = System.currentTimeMillis();
-			logger.stdout(String.format("sync finish[%s](cost: %s) %s => %s", name, (end - time) / 1000 + "s", url,
-					store_path));
+			logger.stdout(String.format("sync finish[%s](cost: %s) %s => %s",
+					name, (end - time) / 1000 + "s", url, store_path));
 		}
 	}
 
@@ -89,11 +92,14 @@ public class ClientFolder {
 			RemoteFile[] remotes = fromManage.list(path);
 			if (target.isFile()) {
 				logger.info("remove file:" + target.getAbsolutePath());
-				Asserts.check(target.delete(), "delete file fail : " + target.getAbsolutePath());
+				Asserts.check(target.delete(),
+						"delete file fail : " + target.getAbsolutePath());
 			}
 			if (!target.exists()) {
-				logger.info(String.format("sync folder[%s] %s => %s", name, path, target.getAbsolutePath()));
-				Asserts.check(target.mkdir(), "create folder fail : " + target.getAbsolutePath());
+				logger.info(String.format("sync folder[%s] %s => %s", name,
+						path, target.getAbsolutePath()));
+				Asserts.check(target.mkdir(),
+						"create folder fail : " + target.getAbsolutePath());
 			}
 			String[] exists = target.list();
 			for (RemoteFile item : remotes) {
@@ -112,18 +118,24 @@ public class ClientFolder {
 					if (exists[i] != null) {
 						File cur_exist = new File(target, exists[i]);
 						if (cur_exist.isDirectory()) {
-							logger.info("remove directory:" + cur_exist.getAbsolutePath());
+							logger.info("remove directory:"
+									+ cur_exist.getAbsolutePath());
 							FileUtils.deleteDirectory(cur_exist);
 						} else {
-							logger.info("remove file:" + cur_exist.getAbsolutePath());
-							Asserts.check(cur_exist.delete(), "can not delete file :" + cur_exist.getAbsolutePath());
+							logger.info("remove file:"
+									+ cur_exist.getAbsolutePath());
+							Asserts.check(
+									cur_exist.delete(),
+									"can not delete file :"
+											+ cur_exist.getAbsolutePath());
 						}
 					}
 				}
 			}
 		} else { // 文件同步
 			if (!isSame(from, target)) {
-				logger.info(String.format("sync file[%s] %s => %s", name, from.path(), target.getAbsolutePath()));
+				logger.info(String.format("sync file[%s] %s => %s", name,
+						from.path(), target.getAbsolutePath()));
 				String md5 = fromManage.md5(from.path());
 
 				if (target.isDirectory()) {
@@ -142,15 +154,17 @@ public class ClientFolder {
 						File cur_part = new File(current_cache_root, i + "");
 						if (!cur_part.exists()) {
 							byte[] part_data = fromManage.part(from.path(), i);
-							logger.info(String.format("[%s] [%s] receive part data %d", name, from.path(),
-									part_data.length));
+							logger.info(String.format(
+									"[%s] [%s] receive part data %d", name,
+									from.path(), part_data.length));
 							FileUtils.writeByteArrayToFile(cur_part, part_data);
 						}
 					}
 
 					File target_temp = new File(current_cache_root, "temp");
 					if (target_temp.isDirectory()) {
-						logger.info("remove directory:" + target_temp.getAbsolutePath());
+						logger.info("remove directory:"
+								+ target_temp.getAbsolutePath());
 						FileUtils.deleteDirectory(target_temp);
 					}
 
@@ -158,7 +172,8 @@ public class ClientFolder {
 						String cache_md5 = MD5.md5(target_temp);
 						if (!md5.equals(cache_md5)) {
 							Asserts.check(target_temp.delete(),
-									"can not delete wrong file[md5 do not match]:" + target_temp.getAbsolutePath());
+									"can not delete wrong file[md5 do not match]:"
+											+ target_temp.getAbsolutePath());
 						}
 					}
 
@@ -166,27 +181,36 @@ public class ClientFolder {
 						target_temp.createNewFile();
 						for (int i = 0; i < totalParts; i++) {
 							File cur_part = new File(current_cache_root, i + "");
-							FileUtils.writeByteArrayToFile(target_temp, FileUtils.readFileToByteArray(cur_part), true);
+							FileUtils.writeByteArrayToFile(target_temp,
+									FileUtils.readFileToByteArray(cur_part),
+									true);
 						}
 					}
 
 					{
 						String cache_md5 = MD5.md5(target_temp);
 						if (!md5.equals(cache_md5)) {
-							logger.info("clear dirty directory : " + current_cache_root.getAbsolutePath());
+							logger.info("clear dirty directory : "
+									+ current_cache_root.getAbsolutePath());
 							FileUtils.deleteDirectory(current_cache_root);
-							throw new RuntimeException("can not fetch correct data from remote for:" + from.path());
+							throw new RuntimeException(
+									"can not fetch correct data from remote for:"
+											+ from.path());
 						}
 					}
 
 					if (target.isFile()) {
-						logger.info("remove unmatch file:" + target.getAbsolutePath());
-						Asserts.check(target.delete(),
-								String.format("can not delete file : %s", target.getAbsolutePath()));
+						logger.info("remove unmatch file:"
+								+ target.getAbsolutePath());
+						Asserts.check(target.delete(), String.format(
+								"can not delete file : %s",
+								target.getAbsolutePath()));
 					}
 
-					Asserts.check(target_temp.renameTo(target), String.format("can not move file: %s => %s",
-							target_temp.getAbsolutePath(), target.getAbsolutePath()));
+					Asserts.check(target_temp.renameTo(target), String.format(
+							"can not move file: %s => %s",
+							target_temp.getAbsolutePath(),
+							target.getAbsolutePath()));
 
 				}
 				target.setLastModified(from.lastModify());
@@ -210,7 +234,11 @@ public class ClientFolder {
 		}
 
 		if (from.lastModify() != root.lastModified()) {
-			return false;
+			logger.info(String.format("[%s] %d <> %d", from.path(),
+					from.lastModify(), root.lastModified()));
+			if (Math.abs(from.lastModify() - root.lastModified()) > 800) {
+				return false;
+			}
 		}
 
 		if (from.length() != root.length()) {
