@@ -16,3 +16,5 @@ tools/
 target/
 
 thrift/gen-java/
+
+ant.xml

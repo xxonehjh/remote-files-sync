@@ -78,6 +78,9 @@ public class ThriftClientPool {
 				 * a self-signed cert.
 				 */
 				String truststore_arr[] = truststore.split("@");
+				if(truststore_arr.length!=2){
+					throw new RuntimeException("client.truststore 格式错误(缺少 @密码):" + truststore);
+				}
 				TSSLTransportParameters params = new TSSLTransportParameters();
 				if (truststore_arr[0].endsWith(".truststore")) {
 					params.setTrustStore(truststore_arr[0], truststore_arr[1], "SunX509", "JKS");

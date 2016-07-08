@@ -112,6 +112,11 @@ public class ServerForSync {
 		TSSLTransportParameters params = new TSSLTransportParameters();
 
 		String keystoreConfigArr[] = keystoreConfig.split("@");
+		
+		if(keystoreConfigArr.length!=2){
+			throw new RuntimeException("server.keystore 格式错误(缺少 @密码):" + keystoreConfig);
+		}
+		
 		String keystore = keystoreConfigArr[0];
 		logger.info("user key:" + keystore);
 		Asserts.check(new File(keystore).exists(), "can not find :" + keystore);
