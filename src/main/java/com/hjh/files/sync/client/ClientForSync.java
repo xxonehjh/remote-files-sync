@@ -8,9 +8,7 @@ import java.util.Properties;
 
 import org.apache.http.util.Asserts;
 
-import com.hjh.files.sync.common.RemoteFileFactory;
 import com.hjh.files.sync.common.RemoteSyncConfig;
-import com.hjh.files.sync.common.StopAble;
 import com.hjh.files.sync.common.log.LogUtil;
 import com.hjh.files.sync.common.thrift.ThriftClientPool;
 import com.hjh.files.sync.common.util.PropertiesUtils;
@@ -102,6 +100,10 @@ public class ClientForSync {
 		Asserts.check(interval >= 0, "client.sync.interval must great then 0");
 
 		runner = new ClientSyncRunner(this);
+	}
+
+	public boolean isRunning() {
+		return runner.isRunning();
 	}
 
 }
