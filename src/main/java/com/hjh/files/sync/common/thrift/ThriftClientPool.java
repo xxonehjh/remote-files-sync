@@ -79,9 +79,9 @@ public class ThriftClientPool {
 				 */
 				String truststore_arr[] = truststore.split("@");
 				TSSLTransportParameters params = new TSSLTransportParameters();
-				if(truststore_arr[0].endsWith(".truststore")){
+				if (truststore_arr[0].endsWith(".truststore")) {
 					params.setTrustStore(truststore_arr[0], truststore_arr[1], "SunX509", "JKS");
-				}else{
+				} else {
 					params.setTrustStore(truststore_arr[0], truststore_arr[1], "X509", "BKS");
 				}
 				/*
@@ -115,6 +115,7 @@ public class ThriftClientPool {
 		for (ClientItem item : items.values()) {
 			item.close();
 		}
+		items.clear();
 	}
 
 }

@@ -9,6 +9,8 @@ import java.util.Properties;
 import org.apache.http.util.Asserts;
 
 import com.hjh.files.sync.common.RemoteFileFactory;
+import com.hjh.files.sync.common.RemoteSyncConfig;
+import com.hjh.files.sync.common.StopAble;
 import com.hjh.files.sync.common.log.LogUtil;
 import com.hjh.files.sync.common.thrift.ThriftClientPool;
 import com.hjh.files.sync.common.util.PropertiesUtils;
@@ -29,18 +31,34 @@ public class ClientForSync {
 		}
 
 		try {
-			ClientForSync client = new ClientForSync(prop);
-			// client.get("local").sync();
-			client.get("images").sync();
+			new ClientForSync(prop).start();
+			/**new ClientForSync(prop).get("datas").sync(new StopAble() {
+
+				@Override
+				public boolean isStop() {
+					return false;
+				}
+
+			});*/
 		} finally {
 			ThriftClientPool.closeAll();
 		}
 	}
 
+	private long interval;
 	private String store;
 	private List<ClientFolder> folders;
+	private ClientSyncRunner runner;
 
-	private ClientFolder get(String name) {
+	public ClientFolder[] getFolders() {
+		return folders.toArray(new ClientFolder[folders.size()]);
+	}
+
+	public long getInterval() {
+		return interval;
+	}
+
+	public ClientFolder get(String name) {
 		for (ClientFolder item : folders) {
 			if (item.getName().equals(name)) {
 				return item;
@@ -49,8 +67,20 @@ public class ClientForSync {
 		return null;
 	}
 
+	public synchronized void start() {
+		if (runner.isRunning()) {
+			return;
+		}
+		runner.start();
+	}
+
+	public synchronized void stop() {
+		runner.stop();
+	}
+
 	public ClientForSync(String propPath) throws IOException {
 		Properties p = PropertiesUtils.load(propPath);
+		RemoteSyncConfig.init(p);
 
 		store = p.getProperty("client.store");
 
@@ -67,7 +97,11 @@ public class ClientForSync {
 
 		Asserts.check(folders.size() != 0, "can not find any client folders");
 
-		RemoteFileFactory.setTruststore(p.getProperty("client.truststore"));
+		interval = Long.parseLong(p.getProperty("client.sync.interval", "10000"));
+
+		Asserts.check(interval >= 0, "client.sync.interval must great then 0");
+
+		runner = new ClientSyncRunner(this);
 	}
 
 }

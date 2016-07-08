@@ -10,6 +10,7 @@ import org.apache.http.util.Asserts;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
+import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TSSLTransportFactory;
 import org.apache.thrift.transport.TSSLTransportFactory.TSSLTransportParameters;
 import org.apache.thrift.transport.TServerSocket;
@@ -19,6 +20,7 @@ import org.apache.thrift.transport.TTransportException;
 import com.hjh.files.sync.common.HLogFactory;
 import com.hjh.files.sync.common.ILog;
 import com.hjh.files.sync.common.RemoteFileManage;
+import com.hjh.files.sync.common.RemoteSyncConfig;
 import com.hjh.files.sync.common.log.LogUtil;
 import com.hjh.files.sync.common.thrift.ThriftClientPool;
 import com.hjh.files.sync.common.util.PropertiesUtils;
@@ -56,7 +58,7 @@ public class ServerForSync {
 
 	public ServerForSync(String propPath) throws IOException {
 		Properties p = PropertiesUtils.load(propPath);
-
+		RemoteSyncConfig.init(p);
 		port = Integer.parseInt(p.getProperty("server.port"));
 		keystore = p.getProperty("server.keystore");
 
@@ -128,7 +130,10 @@ public class ServerForSync {
 		 * socket is bound on return from the factory class.
 		 */
 		TServerTransport serverTransport = TSSLTransportFactory.getServerSocket(port, 0, null, params);
-		TServer server = new TSimpleServer(new Args(serverTransport).processor(processor));
+		// TServer server = new TSimpleServer(new
+		// Args(serverTransport).processor(processor));
+		TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).minWorkerThreads(1)
+				.maxWorkerThreads(3).processor(processor));
 
 		// Use this for a multi threaded server
 		// TServer server = new TThreadPoolServer(new
