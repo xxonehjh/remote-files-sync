@@ -1,43 +1,29 @@
 package com.hjh.remote_files_sync_app;
 
-import java.io.File;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Locale;
 
-import org.apache.commons.io.FileUtils;
-
+import android.app.Service;
+import android.content.Intent;
 import android.util.Log;
 
 public class HLog extends com.hjh.files.sync.common.ILog {
 
+	public static final String RECEIVER_ID = "com.hjh.Sync.communication.RECEIVER";
+
 	public static final HLog instance = new HLog();
 
+	private static Intent intent = new Intent(RECEIVER_ID);
+
+	public static Service service;
+
 	private void writeLogFile(String level, String msg) {
-		try {
-			String path = "";
-			if (level.equals("stdout")) {
-				path = SyncConfig.StoreStdoutPath;
-			} else {
-				path = SyncConfig.StoreLogsPath
-						+ File.separator
-						+ (new java.text.SimpleDateFormat("yyyy_MM_dd",
-								Locale.CHINA).format(new Date()));
-				path = path + "_" + level + ".txt";
-			}
-			File log = new File(path);
-			if (!log.getParentFile().exists()) {
-				log.getParentFile().mkdirs();
-			}
-			String time = new java.text.SimpleDateFormat("HH:mm:ss",
-					Locale.CHINA).format(new Date());
-			FileUtils.write(log, "[" + level + "]" + "[" + time + "]" + msg
-					+ "\r\n", Charset.forName("utf-8"), true);
-			if (level.equals("error")) {
-				writeLogFile("stdout", msg);
-			}
-		} catch (Throwable e) {
-			Log.e("hjh", "记录日志发生异常", e);
+		String time = new java.text.SimpleDateFormat("HH:mm:ss", Locale.CHINA)
+				.format(new Date());
+		String full_msg = "[" + level + "]" + "[" + time + "]" + msg + "\r\n";
+		if (null != service) {
+			intent.putExtra("log", full_msg);
+			service.sendBroadcast(intent);
 		}
 	}
 

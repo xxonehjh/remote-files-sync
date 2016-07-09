@@ -34,6 +34,7 @@ public class SyncService extends Service {
 
 	@Override
 	public void onCreate() {
+		HLog.service = this;
 		logger.stdout("创建同步服务进程");
 		super.onCreate();
 		if (!new File(SyncConfig.StoreConfigPath).exists()) {
@@ -55,6 +56,7 @@ public class SyncService extends Service {
 		if (null != client) {
 			client.stop();
 		}
+		HLog.service = null;
 		super.onDestroy();
 	}
 
