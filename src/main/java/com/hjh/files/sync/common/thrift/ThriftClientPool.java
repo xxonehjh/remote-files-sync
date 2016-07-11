@@ -14,6 +14,7 @@ import org.apache.thrift.transport.TTransportException;
 
 import com.hjh.files.sync.common.HLogFactory;
 import com.hjh.files.sync.common.ILog;
+import com.hjh.files.sync.common.RemoteSyncConfig;
 
 import tutorial.SyncFileServer;
 
@@ -78,7 +79,7 @@ public class ThriftClientPool {
 				 * a self-signed cert.
 				 */
 				String truststore_arr[] = truststore.split("@");
-				if(truststore_arr.length!=2){
+				if (truststore_arr.length != 2) {
 					throw new RuntimeException("client.truststore 格式错误(缺少 @密码):" + truststore);
 				}
 				TSSLTransportParameters params = new TSSLTransportParameters();
@@ -92,7 +93,7 @@ public class ThriftClientPool {
 				 * connection is opened on invocation of the factory method, no
 				 * need to specifically call open()
 				 */
-				transport = TSSLTransportFactory.getClientSocket(ip, port, 0, params);
+				transport = TSSLTransportFactory.getClientSocket(ip, port, RemoteSyncConfig.getTimeout(), params);
 			}
 
 			TProtocol protocol = new TBinaryProtocol(transport);
