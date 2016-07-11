@@ -174,8 +174,8 @@ public class ClientFolder {
 								return;
 							}
 							byte[] part_data = fromManage.part(from.path(), i);
-							logger.debug(String.format("[%s] [%s] [%d] receive part data %d K", name, from.path(),
-									i + 1, part_data.length / 1024));
+							logger.debug(String.format("[%s] [%s] [%d/%d] receive part data %d K", name, from.path(),
+									i + 1, totalParts, part_data.length / 1024));
 							FileUtils.writeByteArrayToFile(cur_part, part_data);
 							if (stop.isStop()) {
 								return;
