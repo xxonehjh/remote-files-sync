@@ -173,8 +173,8 @@ public class ClientFolder {
 								return;
 							}
 							byte[] part_data = fromManage.part(from.path(), i);
-							logger.debug(String.format("[%s] [%s] receive part data %d", name, from.path(),
-									part_data.length));
+							logger.debug(String.format("[%s] [%s] [%d] receive part data %d K", name, from.path(),
+									i + 1, part_data.length / 1024));
 							FileUtils.writeByteArrayToFile(cur_part, part_data);
 							if (stop.isStop()) {
 								return;
@@ -228,29 +228,34 @@ public class ClientFolder {
 		}
 	}
 
-	private boolean isSame(RemoteFile from, File root) {
-		if (from.isFolder()) {
-			if (!root.isDirectory()) {
-				return false;
-			}
-		} else {
-			if (root.isDirectory()) {
-				return false;
-			}
-		}
+	private boolean isSame(RemoteFile from, File to) {
 
-		if (!from.name().equals(root.getName())) {
+		if (!to.exists()) {
 			return false;
 		}
 
-		if (from.lastModify() != root.lastModified()) {
-			logger.debug(String.format("[%s] %d <> %d", from.path(), from.lastModify(), root.lastModified()));
-			if (Math.abs(from.lastModify() - root.lastModified()) > RemoteSyncConfig.getMinDiffTime()) {
+		if (from.isFolder()) {
+			if (!to.isDirectory()) {
+				return false;
+			}
+		} else {
+			if (to.isDirectory()) {
 				return false;
 			}
 		}
 
-		if (from.length() != root.length()) {
+		if (!from.name().equals(to.getName())) {
+			return false;
+		}
+
+		if (from.lastModify() != to.lastModified()) {
+			logger.debug(String.format("[%s] %d <> %d", from.path(), from.lastModify(), to.lastModified()));
+			if (Math.abs(from.lastModify() - to.lastModified()) > RemoteSyncConfig.getMinDiffTime()) {
+				return false;
+			}
+		}
+
+		if (from.length() != to.length()) {
 			return false;
 		}
 		return true;

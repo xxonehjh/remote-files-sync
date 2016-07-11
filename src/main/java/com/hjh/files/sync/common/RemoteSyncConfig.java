@@ -4,7 +4,7 @@ import java.util.Properties;
 
 public class RemoteSyncConfig {
 
-	private static long min_diff_time = 800;
+	private static long min_diff_time = 1000;
 	
 	private static long block_size = 1024*512;
 	
@@ -24,7 +24,7 @@ public class RemoteSyncConfig {
 
 	public static void init(Properties p) {
 
-		min_diff_time = Long.parseLong(p.getProperty("config.min.diff.time", "800"));
+		min_diff_time = Long.parseLong(p.getProperty("config.min.diff.time", "1000"));
 		
 		RemoteFileFactory.setTruststore(p.getProperty("client.truststore"));
 		
