@@ -1,6 +1,7 @@
 package com.hjh.files.sync.client;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
@@ -198,9 +199,14 @@ public class ClientFolder {
 
 					if (!target_temp.exists()) {
 						target_temp.createNewFile();
-						for (int i = 0; i < totalParts; i++) {
-							File cur_part = new File(current_cache_root, i + "");
-							FileUtils.writeByteArrayToFile(target_temp, FileUtils.readFileToByteArray(cur_part), true);
+						FileOutputStream out = new FileOutputStream(target_temp);
+						try {
+							for (int i = 0; i < totalParts; i++) {
+								File cur_part = new File(current_cache_root, i + "");
+								out.write(FileUtils.readFileToByteArray(cur_part));
+							}
+						} finally {
+							out.close();
 						}
 					}
 
