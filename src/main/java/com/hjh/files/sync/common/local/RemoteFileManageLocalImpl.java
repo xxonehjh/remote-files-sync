@@ -48,8 +48,8 @@ public class RemoteFileManageLocalImpl implements RemoteFileManage {
 	}
 
 	public byte[] part(String filePath, int part) {
-		long start = RemoteFileUtil.PART_SIZE * part;
-		long end = start + RemoteFileUtil.PART_SIZE;
+		long start = RemoteFileUtil.getPartSize() * part;
+		long end = start + RemoteFileUtil.getPartSize();
 		File file = toFile(filePath);
 		if (file.length() < start) {
 			return new byte[0];

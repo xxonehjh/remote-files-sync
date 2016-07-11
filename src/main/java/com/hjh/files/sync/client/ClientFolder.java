@@ -32,10 +32,12 @@ public class ClientFolder {
 		this.store_folder = store_folder;
 		this.url = url;
 		this.cache = new File(store_folder, CLIENT_CACHE_FOLDER_NAME);
+		this.cache = new File(this.cache, "_" + RemoteSyncConfig.getBlockSize());
 		if (!this.cache.isDirectory()) {
-			Asserts.check(this.cache.mkdir(),
+			Asserts.check(this.cache.mkdirs(),
 					"can not create cache folder for client on :" + this.cache.getAbsolutePath());
 		}
+
 	}
 
 	public String getName() {
@@ -149,7 +151,11 @@ public class ClientFolder {
 
 				String local_md5 = target.isFile() ? MD5.md5(target) : null;
 				if (!md5.equals(local_md5)) {
-					File current_cache_root = new File(cache, md5);
+					File current_cache_root = new File(cache, md5.substring(0, 2));
+					if (!current_cache_root.exists()) {
+						current_cache_root.mkdir();
+					}
+					current_cache_root = new File(current_cache_root, md5);
 					if (!current_cache_root.exists()) {
 						current_cache_root.mkdir();
 					}
