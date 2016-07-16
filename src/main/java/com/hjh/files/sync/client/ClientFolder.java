@@ -172,7 +172,8 @@ public class ClientFolder {
 					int per_file_part_count = 5;
 					for (int i = 0; i < totalParts; i++) {
 						total_write_file_count++;
-						File cur_part = new File(current_cache_root, total_write_file_count + "." + per_file_part_count);
+						File cur_part = new File(current_cache_root,
+								total_write_file_count + "." + per_file_part_count);
 						if (!cur_part.exists()) {
 							File cur_part_temp = new File(current_cache_root,
 									total_write_file_count + "." + System.currentTimeMillis() + ".temp");
