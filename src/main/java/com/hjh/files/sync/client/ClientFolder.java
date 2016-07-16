@@ -305,8 +305,8 @@ public class ClientFolder {
 		}
 
 		if (from.lastModify() != to.lastModified()) {
-			logger.debug(String.format("[%s] %d <> %d", from.path(), from.lastModify(), to.lastModified()));
 			if (Math.abs(from.lastModify() - to.lastModified()) > RemoteSyncConfig.getMinDiffTime()) {
+				logger.debug(String.format("[%s] %d <> %d", from.path(), from.lastModify(), to.lastModified()));
 				return false;
 			}
 		}
