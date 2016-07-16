@@ -1,6 +1,7 @@
 package com.hjh.files.sync.client;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -167,20 +168,49 @@ public class ClientFolder {
 					if (stop.isStop()) {
 						return;
 					}
+					int total_write_file_count = 0;
+					int per_file_part_count = 5;
 					for (int i = 0; i < totalParts; i++) {
-						File cur_part = new File(current_cache_root, i + "");
+						total_write_file_count++;
+						File cur_part = new File(current_cache_root, total_write_file_count + "." + per_file_part_count);
 						if (!cur_part.exists()) {
-							if (stop.isStop()) {
-								return;
+							File cur_part_temp = new File(current_cache_root,
+									total_write_file_count + "." + System.currentTimeMillis() + ".temp");
+							if (cur_part_temp.exists()) {
+								Asserts.check(cur_part_temp.delete(),
+										"can not delete :" + cur_part_temp.getAbsolutePath());
 							}
-							byte[] part_data = fromManage.part(from.path(), i);
-							logger.debug(String.format("[%s] [%s] [%d/%d] receive part data %d K", name, from.path(),
-									i + 1, totalParts, part_data.length / 1024));
-							FileUtils.writeByteArrayToFile(cur_part, part_data);
-							if (stop.isStop()) {
-								return;
+							try {
+								FileOutputStream out = new FileOutputStream(cur_part_temp);
+								try {
+									for (int j = 0; j < per_file_part_count; j++) {
+										if (stop.isStop()) {
+											return;
+										}
+										int cur_part_index = i + j;
+										if (cur_part_index < totalParts) {
+											byte[] part_data = fromManage.part(from.path(), cur_part_index);
+											logger.debug(String.format("[%s] [%s] [%d/%d] receive part data %d K", name,
+													from.path(), cur_part_index + 1, totalParts,
+													part_data.length / 1024));
+											out.write(part_data);
+											part_data = null;
+										}
+										if (stop.isStop()) {
+											return;
+										}
+									}
+								} finally {
+									out.close();
+									out = null;
+								}
+								Asserts.check(cur_part_temp.renameTo(cur_part),
+										"can not rename :" + cur_part_temp.getAbsolutePath());
+							} finally {
+								cur_part_temp.delete();
 							}
 						}
+						i = i + per_file_part_count - 1;
 					}
 
 					File target_temp = new File(current_cache_root, "temp");
@@ -199,14 +229,33 @@ public class ClientFolder {
 
 					if (!target_temp.exists()) {
 						target_temp.createNewFile();
+						FileInputStream in = null;
 						FileOutputStream out = new FileOutputStream(target_temp);
+						byte[] cache = new byte[512];
+						int len;
 						try {
-							for (int i = 0; i < totalParts; i++) {
-								File cur_part = new File(current_cache_root, i + "");
-								out.write(FileUtils.readFileToByteArray(cur_part));
+							for (int i = 1; i <= total_write_file_count; i++) {
+								File cur_part = new File(current_cache_root, i + "." + per_file_part_count);
+								in = new FileInputStream(cur_part);
+								while (true) {
+									len = in.read(cache);
+									if (len > 0) {
+										out.write(cache, 0, len);
+									} else {
+										break;
+									}
+								}
+								in.close();
+								in = null;
 							}
 						} finally {
 							out.close();
+							out = null;
+							if (null != in) {
+								in.close();
+								in = null;
+							}
+							cache = null;
 						}
 					}
 
@@ -215,7 +264,8 @@ public class ClientFolder {
 						if (!md5.equals(cache_md5)) {
 							logger.stdout("clear dirty directory : " + current_cache_root.getAbsolutePath());
 							FileUtils.deleteDirectory(current_cache_root);
-							throw new RuntimeException("can not fetch correct data from remote for:" + from.path());
+							throw new RuntimeException("can not fetch correct data from remote for:" + from.path() + ":"
+									+ cache_md5 + ":" + md5);
 						}
 					}
 
