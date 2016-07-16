@@ -47,7 +47,6 @@ public class SyncService extends Service {
 						+ e.getMessage());
 			}
 		}
-
 	}
 
 	@Override
@@ -55,6 +54,7 @@ public class SyncService extends Service {
 		logger.stdout("销毁同步服务进程");
 		if (null != client) {
 			client.stop();
+			client = null;
 		}
 		HLog.service = null;
 		super.onDestroy();
@@ -62,6 +62,7 @@ public class SyncService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+
 		if (null != intent && intent.getBooleanExtra("sync", false)) {
 			logger.stdout("触发同步服务");
 			if (null == client) {
@@ -71,8 +72,11 @@ public class SyncService extends Service {
 				Toast.makeText(this, "数据同步中...", Toast.LENGTH_SHORT).show();
 			} else {
 				Toast.makeText(this, "成功启动同步数据服务", Toast.LENGTH_SHORT).show();
-				client.start();
 			}
+		}
+
+		if (null != client && !client.isRunning()) {
+			client.start();
 		}
 		return super.onStartCommand(intent, flags, startId);
 	}
