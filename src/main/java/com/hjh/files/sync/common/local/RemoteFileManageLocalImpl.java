@@ -9,7 +9,7 @@ import org.apache.http.util.Asserts;
 import com.hjh.files.sync.common.RemoteFile;
 import com.hjh.files.sync.common.RemoteFileManage;
 import com.hjh.files.sync.common.RemoteSyncConfig;
-import com.hjh.files.sync.common.util.MD5;
+import com.hjh.files.sync.common.util.MD5Cacher;
 import com.hjh.files.sync.common.util.RemoteFileUtil;
 
 public class RemoteFileManageLocalImpl implements RemoteFileManage {
@@ -38,7 +38,7 @@ public class RemoteFileManageLocalImpl implements RemoteFileManage {
 
 	public String md5(String filePath) {
 		try {
-			return MD5.md5(toFile(filePath));
+			return MD5Cacher.md5(toFile(filePath));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
