@@ -93,7 +93,7 @@ public class ClientForSync {
 		block_size = Integer.parseInt(p.getProperty("client.block.size", "524288"));
 
 		RemoteSyncConfig.checkBockSize(block_size);
-		
+
 		folders = new ArrayList<ClientFolder>();
 		for (Object item : p.keySet().toArray()) {
 			if (item.toString().startsWith(PORP_KEY_PREFIX)) {
@@ -113,6 +113,16 @@ public class ClientForSync {
 
 	public boolean isRunning() {
 		return runner.isRunning();
+	}
+
+	public void validate() throws IOException {
+		for (ClientFolder item : folders) {
+			item.validate();
+		}
+	}
+
+	public static void validate(String config) throws IOException {
+		new ClientForSync(config).validate();
 	}
 
 }

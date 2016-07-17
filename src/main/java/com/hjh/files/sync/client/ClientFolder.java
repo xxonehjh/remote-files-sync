@@ -321,4 +321,73 @@ public class ClientFolder {
 		return true;
 	}
 
+	public void validate() throws IOException {
+		String store_path = new File(new File(store_folder), name).getCanonicalPath();
+		if (null == fromManage) {
+			fromManage = RemoteFileFactory.queryManage(url);
+		}
+		logger.stdout(String.format("validate [%s] %s => %s", name, url, store_path));
+		File root = new File(store_path);
+		if (!root.exists()) {
+			logger.info("not any files in local");
+			return;
+		}
+		long time = System.currentTimeMillis();
+		try {
+			doValidate(null, root);
+		} finally {
+			long end = System.currentTimeMillis();
+			logger.stdout(String.format("validate finish[%s](cost: %s) %s => %s", name, (end - time) / 1000 + "s", url,
+					store_path));
+		}
+	}
+
+	private void doValidate(RemoteFile from, File target) throws IOException {
+		if (null == from || from.isFolder()) { // 目录同步
+			String path = null == from ? null : from.path();
+			RemoteFile[] remotes = fromManage.list(path);
+			if (target.isFile()) {
+				logger.stdout("file type error (must be a folder) :" + target.getAbsolutePath());
+			} else if (!target.exists()) {
+				logger.stdout("can not found folder:" + target.getAbsolutePath());
+			} else {
+				String[] exists = target.list();
+				for (RemoteFile item : remotes) {
+					doValidate(item, new File(target, item.name()));
+					if (null != exists) {
+						for (int i = 0; i < exists.length; i++) {
+							if (exists[i] != null && exists[i].equals(item.name())) {
+								exists[i] = null;
+								break;
+							}
+						}
+					}
+				}
+				if (null != exists) {
+					for (int i = 0; i < exists.length; i++) {
+						if (exists[i] != null) {
+							File cur_exist = new File(target, exists[i]);
+							logger.stdout("must remove:" + cur_exist.getAbsolutePath());
+						}
+					}
+				}
+			}
+		} else {
+			if (!target.exists()) {
+				logger.stdout("can not found file:" + target.getAbsolutePath());
+			} else if (target.isDirectory()) {
+				logger.stdout("file type error (must be a file) :" + target.getAbsolutePath());
+			} else {
+				if (!isSame(from, target)) {
+					logger.stdout("file info not match : " + target.getAbsolutePath());
+				}
+				String md5_from = fromManage.md5(from.path());
+				String md5_target = MD5.md5(target);
+				if (!md5_from.equals(md5_target)) {
+					logger.stdout("file md5 not match : " + target.getAbsolutePath());
+				}
+			}
+		}
+	}
+
 }
