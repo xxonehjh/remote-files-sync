@@ -5,18 +5,13 @@ import java.util.List;
 import org.apache.http.util.Asserts;
 
 import com.hjh.files.sync.common.RemoteFile;
-import com.hjh.files.sync.common.RemoteSyncConfig;
 
 import tutorial.RemoteFileInfo;
 
 public class RemoteFileUtil {
-	
-	public static long getPartSize(){
-		return RemoteSyncConfig.getBlockSize();
-	}
 
-	public static int countPart(long size) {
-		return (int) ((size + getPartSize() - 1) / getPartSize());
+	public static int countPart(long size,int page_size) {
+		return (int) ((size + page_size - 1) / page_size);
 	}
 
 	public static String formatPath(String path) {

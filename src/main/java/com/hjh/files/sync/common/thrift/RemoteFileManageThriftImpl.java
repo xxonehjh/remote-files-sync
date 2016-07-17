@@ -45,17 +45,10 @@ public class RemoteFileManageThriftImpl implements RemoteFileManage {
 		}
 	}
 
-	public int partCount(long len) {
+	public byte[] part(String file, int part, int part_size)
+	{
 		try {
-			return client().partCount(folder, len);
-		} catch (TException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public byte[] part(String file, int part) {
-		try {
-			return client().part(folder, file, part).array();
+			return client().part(folder, file, part, part_size).array();
 		} catch (TException e) {
 			throw new RuntimeException(e);
 		}

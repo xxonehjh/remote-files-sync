@@ -30,15 +30,9 @@ public class SyncFileServerHandler implements SyncFileServer.Iface {
 	}
 
 	@Override
-	public int partCount(String folder, long length) throws TException {
-		logger.info(String.format("partCount [%s] [%d]", folder, length));
-		return sync.get(folder).partCount(length);
-	}
-
-	@Override
-	public ByteBuffer part(String folder, String path, int part) throws TException {
+	public ByteBuffer part(String folder, String path, int part, int part_size) throws TException {
 		logger.info(String.format("part [%s] [%s] [%d]", folder, path, part));
-		byte[] partData = sync.get(folder).part(path, part);
+		byte[] partData = sync.get(folder).part(path, part, part_size);
 		logger.info(String.format("send part data %d", partData.length));
 		return ByteBuffer.wrap(partData);
 	}
@@ -48,15 +42,13 @@ public class SyncFileServerHandler implements SyncFileServer.Iface {
 		logger.info(String.format("list files [%s] [%s]", folder, path));
 		List<RemoteFileInfo> result = new ArrayList<RemoteFileInfo>();
 		RemoteFile[] files = sync.get(folder).list(path);
-		if(null!=files){
-			for(RemoteFile item:files){
+		if (null != files) {
+			for (RemoteFile item : files) {
 				result.add(RemoteFileUtil.to(item));
 			}
 		}
 		return result;
 	}
-
-	
 
 	//////////////////////////////////////////////
 

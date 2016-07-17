@@ -6,8 +6,6 @@ public interface RemoteFileManage {
 
 	public String md5(String file);
 
-	public int partCount(long file);
-
-	public byte[] part(String file, int part);
+	public byte[] part(String file, int part ,int part_size);
 
 }

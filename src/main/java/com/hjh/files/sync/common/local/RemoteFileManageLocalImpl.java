@@ -8,6 +8,7 @@ import org.apache.http.util.Asserts;
 
 import com.hjh.files.sync.common.RemoteFile;
 import com.hjh.files.sync.common.RemoteFileManage;
+import com.hjh.files.sync.common.RemoteSyncConfig;
 import com.hjh.files.sync.common.util.MD5;
 import com.hjh.files.sync.common.util.RemoteFileUtil;
 
@@ -43,13 +44,10 @@ public class RemoteFileManageLocalImpl implements RemoteFileManage {
 		}
 	}
 
-	public int partCount(long len) {
-		return RemoteFileUtil.countPart(len);
-	}
-
-	public byte[] part(String filePath, int part) {
-		long start = RemoteFileUtil.getPartSize() * part;
-		long end = start + RemoteFileUtil.getPartSize();
+	public byte[] part(String filePath, int part, int part_size) {
+		RemoteSyncConfig.checkBockSize(part_size);
+		long start = part_size * part;
+		long end = start + part_size;
 		File file = toFile(filePath);
 		if (file.length() < start) {
 			return new byte[0];

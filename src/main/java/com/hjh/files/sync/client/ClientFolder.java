@@ -16,6 +16,7 @@ import com.hjh.files.sync.common.RemoteFileManage;
 import com.hjh.files.sync.common.RemoteSyncConfig;
 import com.hjh.files.sync.common.StopAble;
 import com.hjh.files.sync.common.util.MD5;
+import com.hjh.files.sync.common.util.RemoteFileUtil;
 
 public class ClientFolder {
 
@@ -28,13 +29,15 @@ public class ClientFolder {
 	private String name;
 	private String url;
 	private File cache;
+	private int block_size;
 
-	public ClientFolder(String name, String store_folder, String url) {
+	public ClientFolder(String name, String store_folder, String url, int block_size) {
 		this.name = name;
 		this.store_folder = store_folder;
 		this.url = url;
+		this.block_size = block_size;
 		this.cache = new File(store_folder, CLIENT_CACHE_FOLDER_NAME);
-		this.cache = new File(this.cache, "_" + RemoteSyncConfig.getBlockSize());
+		this.cache = new File(this.cache, "_" + block_size);
 		if (!this.cache.isDirectory()) {
 			Asserts.check(this.cache.mkdirs(),
 					"can not create cache folder for client on :" + this.cache.getAbsolutePath());
@@ -164,7 +167,7 @@ public class ClientFolder {
 					if (stop.isStop()) {
 						return;
 					}
-					int totalParts = fromManage.partCount(from.length());
+					int totalParts = RemoteFileUtil.countPart(from.length(), this.block_size);
 					if (stop.isStop()) {
 						return;
 					}
@@ -190,7 +193,7 @@ public class ClientFolder {
 										}
 										int cur_part_index = i + j;
 										if (cur_part_index < totalParts) {
-											byte[] part_data = fromManage.part(from.path(), cur_part_index);
+											byte[] part_data = fromManage.part(from.path(), cur_part_index, block_size);
 											logger.debug(String.format("[%s] [%s] [%d/%d] receive part data %d K", name,
 													from.path(), cur_part_index + 1, totalParts,
 													part_data.length / 1024));

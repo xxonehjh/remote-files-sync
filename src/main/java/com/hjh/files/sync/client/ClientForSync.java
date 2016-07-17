@@ -30,14 +30,13 @@ public class ClientForSync {
 
 		try {
 			new ClientForSync(prop).start();
-			/**new ClientForSync(prop).get("datas").sync(new StopAble() {
-
-				@Override
-				public boolean isStop() {
-					return false;
-				}
-
-			});*/
+			/**
+			 * new ClientForSync(prop).get("datas").sync(new StopAble() {
+			 * 
+			 * @Override public boolean isStop() { return false; }
+			 * 
+			 *           });
+			 */
 		} finally {
 			ThriftClientPool.closeAll();
 		}
@@ -45,6 +44,7 @@ public class ClientForSync {
 
 	private long interval;
 	private String store;
+	private int block_size;
 	private List<ClientFolder> folders;
 	private ClientSyncRunner runner;
 
@@ -85,21 +85,30 @@ public class ClientForSync {
 		Asserts.notBlank(store, "can not found config for client.store");
 		Asserts.check(new File(store).isDirectory(), "not exist store folder:" + store);
 
+		interval = Long.parseLong(p.getProperty("client.sync.interval", "10000"));
+
+		Asserts.check(interval >= 0, "client.sync.interval must great then 0");
+
+		// 524288 = 1024 * 512
+		block_size = Integer.parseInt(p.getProperty("client.block.size", "524288"));
+
+		RemoteSyncConfig.checkBockSize(block_size);
+		
 		folders = new ArrayList<ClientFolder>();
 		for (Object item : p.keySet().toArray()) {
 			if (item.toString().startsWith(PORP_KEY_PREFIX)) {
 				folders.add(new ClientFolder(item.toString().substring(PORP_KEY_PREFIX.length()), store,
-						(String) p.get(item)));
+						(String) p.get(item), block_size));
 			}
 		}
 
 		Asserts.check(folders.size() != 0, "can not find any client folders");
 
-		interval = Long.parseLong(p.getProperty("client.sync.interval", "10000"));
-
-		Asserts.check(interval >= 0, "client.sync.interval must great then 0");
-
 		runner = new ClientSyncRunner(this);
+	}
+
+	public int getBlockSize() {
+		return block_size;
 	}
 
 	public boolean isRunning() {
