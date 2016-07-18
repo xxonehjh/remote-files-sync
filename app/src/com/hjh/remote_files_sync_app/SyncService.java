@@ -1,7 +1,6 @@
 package com.hjh.remote_files_sync_app;
 
 import java.io.File;
-import java.io.IOException;
 
 import android.app.Service;
 import android.content.Intent;
@@ -40,12 +39,16 @@ public class SyncService extends Service {
 		if (!new File(SyncConfig.StoreConfigPath).exists()) {
 			logger.stdout("配置文件不存在:" + SyncConfig.StoreConfigPath);
 		} else {
-			try {
-				client = new ClientForSync(SyncConfig.StoreConfigPath);
-			} catch (IOException e) {
-				logger.stdout("初始时client失败:" + SyncConfig.StoreConfigPath + ":"
-						+ e.getMessage());
-			}
+			initClient();
+		}
+	}
+
+	private void initClient() {
+		try {
+			client = new ClientForSync(SyncConfig.StoreConfigPath);
+		} catch (Throwable e) {
+			logger.stdout("初始时client失败:" + SyncConfig.StoreConfigPath + ":"
+					+ e.getMessage());
 		}
 	}
 
@@ -65,6 +68,9 @@ public class SyncService extends Service {
 
 		if (null != intent && intent.getBooleanExtra("sync", false)) {
 			logger.stdout("触发同步服务");
+			if (null == client) {
+				initClient();
+			}
 			if (null == client) {
 				Toast.makeText(this, "未成功初始时 client ...", Toast.LENGTH_SHORT)
 						.show();
