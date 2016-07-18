@@ -209,11 +209,11 @@ public class ClientFolder {
 			return true;
 		}
 
-		if (!isSameTime(from, to)) {
-			return false;
+		if (RemoteSyncConfig.isCopyTime() && isSameTime(from, to)) {
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	public void validate() throws IOException {
