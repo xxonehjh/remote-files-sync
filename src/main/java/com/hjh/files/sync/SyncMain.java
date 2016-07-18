@@ -21,7 +21,7 @@ public class SyncMain {
 				ServerForSync.main(new String[] { config });
 			} else if ("client".equals(type)) {
 				ClientForSync.main(new String[] { config });
-			} else if("client_validate".equals(type)) {
+			} else if ("client_validate".equals(type)) {
 				ClientForSync.validate(config);
 			} else {
 				throw new RuntimeException("unknow type " + type);

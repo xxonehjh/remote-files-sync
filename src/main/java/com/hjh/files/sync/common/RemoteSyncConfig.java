@@ -23,6 +23,12 @@ public class RemoteSyncConfig {
 
 	private static boolean copy_time = true;
 
+	private static String copy_type = "cache";
+
+	public static String getCopyType() {
+		return copy_type;
+	}
+
 	public static long getMinDiffTime() {
 		return min_diff_time;
 	}
@@ -41,12 +47,16 @@ public class RemoteSyncConfig {
 
 		RemoteFileFactory.setTruststore(p.getProperty("client.truststore"));
 
-		if (p.contains("config.timeout")) {
+		if (p.containsKey("config.timeout")) {
 			timeout = Integer.parseInt(p.getProperty("config.timeout"));
 		}
 
-		if (p.contains("client.copy.time")) {
+		if (p.containsKey("client.copy.time")) {
 			copy_time = "true".equals(p.getProperty("client.copy.time"));
+		}
+
+		if (p.containsKey("client.copy.type")) {
+			copy_type = p.getProperty("client.copy.type");
 		}
 	}
 

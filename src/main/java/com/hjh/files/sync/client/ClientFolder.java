@@ -20,7 +20,6 @@ public class ClientFolder {
 	private static ILog logger = HLogFactory.create(ClientFolder.class);
 
 	private RemoteFileManage fromManage;
-
 	private String store_folder;
 	private String name;
 	private String url;
@@ -30,7 +29,13 @@ public class ClientFolder {
 		this.name = name;
 		this.store_folder = store_folder;
 		this.url = url;
-		this.fileCopy = new FileCopyByCache(store_folder, block_size);
+		if ("cache".equals(RemoteSyncConfig.getCopyType())) {
+			this.fileCopy = new FileCopyByCache(this, store_folder, block_size);
+		} else if ("simple".equals(RemoteSyncConfig.getCopyType())) {
+			this.fileCopy = new FileCopyBySimple(this, store_folder, block_size);
+		} else {
+			throw new RuntimeException("error client.copy.type :" + RemoteSyncConfig.getCopyType());
+		}
 	}
 
 	public String getName() {

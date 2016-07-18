@@ -24,7 +24,8 @@ public class FileCopyByCache implements FileCopy {
 	private File cache;
 	private int block_size;
 
-	public FileCopyByCache(String store_folder, int block_size) {
+	public FileCopyByCache(ClientFolder client_folder, String store_folder, int block_size) {
+		this.client_folder = client_folder;
 		this.block_size = block_size;
 		this.cache = new File(store_folder, CLIENT_CACHE_FOLDER_NAME);
 		this.cache = new File(this.cache, "_" + block_size);
@@ -35,6 +36,8 @@ public class FileCopyByCache implements FileCopy {
 	}
 
 	public void copy(StopAble stop, RemoteFile from, File target, String md5) throws IOException {
+
+		Asserts.check(!target.exists(), "file already exist:" + target.getAbsolutePath());
 
 		File current_cache_root = new File(cache, md5.substring(0, 2));
 		if (!current_cache_root.exists()) {
