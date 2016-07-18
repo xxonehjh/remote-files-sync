@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.EditText;
 
 public class MainActivity extends Activity {
@@ -19,10 +20,6 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		out = (EditText) this.findViewById(R.id.text_for_output);
-
-		Intent intent = new Intent(SyncService.ACTION);
-		intent.putExtra("sync", true);
-		startService(intent);
 
 		msgReceiver = new MsgReceiver();
 		IntentFilter intentFilter = new IntentFilter();
@@ -58,6 +55,30 @@ public class MainActivity extends Activity {
 			updateState(intent.getStringExtra("log"));
 		}
 
+	}
+
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_sync_stop: {
+			Intent intent = new Intent(SyncService.ACTION);
+			intent.putExtra("sync_action", "stop");
+			startService(intent);
+		}
+			break;
+		case R.id.action_sync: {
+			Intent intent = new Intent(SyncService.ACTION);
+			intent.putExtra("sync_action", "start");
+			startService(intent);
+		}
+			break;
+		case R.id.action_sync_validate: {
+			Intent intent = new Intent(SyncService.ACTION);
+			intent.putExtra("sync_action", "validate");
+			startService(intent);
+		}
+			break;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 }

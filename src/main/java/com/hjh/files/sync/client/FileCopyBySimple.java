@@ -38,6 +38,10 @@ public class FileCopyBySimple implements FileCopy {
 				out.write(part_data);
 				logger.debug(String.format("[%s] [%s] [%d/%d] receive part data %d K", this.client_folder.getName(),
 						from.path(), i + 1, totalParts, part_data.length / 1024));
+				part_data = null;
+				if (stop.isStop()) {
+					return;
+				}
 			}
 		} finally {
 			out.close();

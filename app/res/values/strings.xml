@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">remote-files-sync-app</string>
-    <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">远程数据同步</string>
+    <string name="action_sync">启动</string>
+    <string name="action_sync_stop">停止</string>
+    <string name="action_sync_validate">校验</string>
 
 </resources>
