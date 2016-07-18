@@ -24,18 +24,20 @@ public class ClientFolder {
 	private String name;
 	private String url;
 	private FileCopy fileCopy;
+	private FileInfoRecorder infoRecorder;
 
 	public ClientFolder(String name, String store_folder, String url, int block_size) {
 		this.name = name;
 		this.store_folder = store_folder;
 		this.url = url;
 		if ("cache".equals(RemoteSyncConfig.getCopyType())) {
-			this.fileCopy = new FileCopyByCache(this, store_folder, block_size);
+			this.fileCopy = new FileCopyByCache(this, block_size);
 		} else if ("simple".equals(RemoteSyncConfig.getCopyType())) {
-			this.fileCopy = new FileCopyBySimple(this, store_folder, block_size);
+			this.fileCopy = new FileCopyBySimple(this, block_size);
 		} else {
 			throw new RuntimeException("error client.copy.type :" + RemoteSyncConfig.getCopyType());
 		}
+		this.infoRecorder = new FileInfoRecorder(this);
 	}
 
 	public String getName() {
@@ -105,9 +107,6 @@ public class ClientFolder {
 			if (!target.exists()) {
 				logger.stdout(String.format("sync folder[%s] %s => %s", name, path, target.getAbsolutePath()));
 				Asserts.check(target.mkdir(), "create folder fail : " + target.getAbsolutePath());
-				if (RemoteSyncConfig.isCopyTime()) {
-					target.setLastModified(from.lastModify());
-				}
 			}
 			String[] exists = target.list();
 			for (RemoteFile item : remotes) {
@@ -159,14 +158,30 @@ public class ClientFolder {
 					}
 					fileCopy.copy(stop, from, target, md5);
 				}
-				if (RemoteSyncConfig.isCopyTime()) {
-					target.setLastModified(from.lastModify());
-				}
+			}
+		}
+
+		if (null != from) {
+			if (RemoteSyncConfig.isCopyTime() && !isSameTime(from, target)) {
+				target.setLastModified(from.lastModify());
+			}
+			if (!infoRecorder.isSame(from)) {
+				infoRecorder.record(from);
 			}
 		}
 	}
 
-	private boolean isSame(RemoteFile from, File to) {
+	private boolean isSameTime(RemoteFile from, File to) {
+		if (from.lastModify() != to.lastModified()) {
+			if (Math.abs(from.lastModify() - to.lastModified()) > RemoteSyncConfig.getMinDiffTime()) {
+				logger.debug(String.format("[%s] %d <> %d", from.path(), from.lastModify(), to.lastModified()));
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean isSame(RemoteFile from, File to) throws IOException {
 
 		if (!to.exists()) {
 			return false;
@@ -186,16 +201,18 @@ public class ClientFolder {
 			return false;
 		}
 
-		if (from.lastModify() != to.lastModified()) {
-			if (Math.abs(from.lastModify() - to.lastModified()) > RemoteSyncConfig.getMinDiffTime()) {
-				logger.debug(String.format("[%s] %d <> %d", from.path(), from.lastModify(), to.lastModified()));
-				return false;
-			}
-		}
-
 		if (from.length() != to.length()) {
 			return false;
 		}
+
+		if (infoRecorder.isSame(from)) {
+			return true;
+		}
+
+		if (!isSameTime(from, to)) {
+			return false;
+		}
+
 		return true;
 	}
 

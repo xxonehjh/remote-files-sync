@@ -19,7 +19,7 @@ public class FileCopyBySimple implements FileCopy {
 	private ClientFolder client_folder;
 	private int block_size;
 
-	public FileCopyBySimple(ClientFolder client_folder, String store_folder, int block_size) {
+	public FileCopyBySimple(ClientFolder client_folder, int block_size) {
 		this.client_folder = client_folder;
 		this.block_size = block_size;
 	}

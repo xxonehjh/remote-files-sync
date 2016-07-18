@@ -24,10 +24,10 @@ public class FileCopyByCache implements FileCopy {
 	private File cache;
 	private int block_size;
 
-	public FileCopyByCache(ClientFolder client_folder, String store_folder, int block_size) {
+	public FileCopyByCache(ClientFolder client_folder,int block_size) {
 		this.client_folder = client_folder;
 		this.block_size = block_size;
-		this.cache = new File(store_folder, CLIENT_CACHE_FOLDER_NAME);
+		this.cache = new File(client_folder.getStore_folder(), CLIENT_CACHE_FOLDER_NAME);
 		this.cache = new File(this.cache, "_" + block_size);
 		if (!this.cache.isDirectory()) {
 			Asserts.check(this.cache.mkdirs(),
