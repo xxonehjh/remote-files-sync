@@ -100,6 +100,9 @@ public class ClientFolder {
 			if (!target.exists()) {
 				logger.stdout(String.format("sync folder[%s] %s => %s", name, path, target.getAbsolutePath()));
 				Asserts.check(target.mkdir(), "create folder fail : " + target.getAbsolutePath());
+				if (RemoteSyncConfig.isCopyTime()) {
+					target.setLastModified(from.lastModify());
+				}
 			}
 			String[] exists = target.list();
 			for (RemoteFile item : remotes) {
@@ -151,7 +154,9 @@ public class ClientFolder {
 					}
 					fileCopy.copy(stop, from, target, md5);
 				}
-				target.setLastModified(from.lastModify());
+				if (RemoteSyncConfig.isCopyTime()) {
+					target.setLastModified(from.lastModify());
+				}
 			}
 		}
 	}
