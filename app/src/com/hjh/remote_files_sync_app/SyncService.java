@@ -1,16 +1,20 @@
 package com.hjh.remote_files_sync_app;
 
 import java.io.File;
+import java.util.Locale;
+
+import org.apache.thrift.transport.TTransportException;
 
 import android.app.Service;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.IBinder;
-import android.widget.Toast;
 
-import com.hjh.files.sync.client.ClientForSync;
 import com.hjh.files.sync.common.HLogFactory;
 import com.hjh.files.sync.common.ILog;
 import com.hjh.files.sync.common.ILogFactory;
+import com.hjh.files.sync.server.ServerForSync;
 
 public class SyncService extends Service {
 
@@ -29,46 +33,62 @@ public class SyncService extends Service {
 	}
 
 	private static ILog logger = HLogFactory.create(SyncService.class);
-	private ClientForSync client;
-	private boolean is_validate = false;
+	private ServerForSync server;
 
 	@Override
 	public void onCreate() {
 		HLog.service = this;
-		logger.stdout("创建同步服务");
 		super.onCreate();
 		if (!new File(SyncConfig.StoreConfigPath).exists()) {
 			logger.stdout("配置文件不存在:" + SyncConfig.StoreConfigPath);
-		} else {
-			initClient();
 		}
 	}
 
-	private void initClient() {
-		if (is_validate) {
-			Toast.makeText(this, "正在校验数据...", Toast.LENGTH_SHORT).show();
+	private synchronized void startServer(String ip) {
+		if (null == ip) {
+			logger.stdout("获取不到wifi IP");
 			return;
 		}
-		try {
-			client = new ClientForSync(SyncConfig.StoreConfigPath);
-		} catch (Throwable e) {
-			logger.stdout("初始时client失败:" + SyncConfig.StoreConfigPath + ":"
-					+ e.getMessage());
+		if (null == server) {
+			try {
+				server = new ServerForSync(SyncConfig.StoreConfigPath);
+				logger.stdout("服务启动[" + ip + ":" + server.getPort() + "]");
+				new Thread() {
+					public void run() {
+						try {
+							server.start();
+						} catch (TTransportException e) {
+							logger.error("启动服务失败", e);
+						} finally {
+							stopServer();
+						}
+					}
+				}.start();
+			} catch (Throwable e) {
+				logger.stdout("初始化server失败:" + SyncConfig.StoreConfigPath + ":"
+						+ e.getMessage());
+			}
 		}
 	}
 
-	private void stopClient() {
-		if (null != client) {
-			client.stop();
-			client = null;
-			logger.stdout("停止同步任务");
+	private synchronized void stopServer() {
+		if (null != server) {
+			new Thread() {
+				public void run() {
+					try {
+						server.stop();
+					} finally {
+						server = null;
+						logger.stdout("停止同步任务");
+					}
+				}
+			}.start();
 		}
 	}
 
 	@Override
 	public void onDestroy() {
-		logger.stdout("销毁同步服务");
-		stopClient();
+		stopServer();
 		HLog.service = null;
 		super.onDestroy();
 	}
@@ -80,43 +100,15 @@ public class SyncService extends Service {
 				.getStringExtra("sync_action");
 
 		if ("start".equals(action)) {
-			logger.stdout("触发同步任务");
-			if (null == client) {
-				initClient();
-			}
-			if (null == client) {
-				Toast.makeText(this, "初始化失败...", Toast.LENGTH_SHORT).show();
-			} else if (client.isRunning()) {
-				Toast.makeText(this, "数据同步中...", Toast.LENGTH_SHORT).show();
+			if (null != server) {
+				logger.stdout("服务已经启动");
 			} else {
-				Toast.makeText(this, "成功启动同步任务", Toast.LENGTH_SHORT).show();
-			}
-			if (null != client && !client.isRunning()) {
-				client.start();
+				String ip = getLocalIpAddress();
+				startServer(ip);
 			}
 		} else if ("stop".equals(action)) {
-			logger.stdout("触发停止同步任务");
-			this.stopClient();
-		} else if ("validate".equals(action)) {
-			this.stopClient();
-			logger.stdout("触发校验数据任务");
-			if (is_validate) {
-				Toast.makeText(this, "正在校验数据...", Toast.LENGTH_SHORT).show();
-			} else {
-				is_validate = true;
-				Toast.makeText(this, "启动数据校验...", Toast.LENGTH_SHORT).show();
-				new Thread() {
-					public void run() {
-						try {
-							ClientForSync.validate(SyncConfig.StoreConfigPath);
-						} catch (Throwable e) {
-							logger.stdout("校验数据失败:" + e.getMessage());
-						} finally {
-							is_validate = false;
-						}
-					}
-				}.start();
-			}
+			logger.stdout("触发停止任务");
+			this.stopServer();
 		}
 
 		return super.onStartCommand(intent, flags, startId);
@@ -125,6 +117,18 @@ public class SyncService extends Service {
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
+	}
+
+	private String getLocalIpAddress() {
+		WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+		int ipAddress = wifiInfo.getIpAddress();
+		if (0 == ipAddress) {
+			return null;
+		}
+		return String.format(Locale.CHINA, "%d.%d.%d.%d", (ipAddress & 0xff),
+				(ipAddress >> 8 & 0xff), (ipAddress >> 16 & 0xff),
+				(ipAddress >> 24 & 0xff));
 	}
 
 }

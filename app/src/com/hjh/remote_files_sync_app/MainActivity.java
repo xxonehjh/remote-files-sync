@@ -71,12 +71,6 @@ public class MainActivity extends Activity {
 			startService(intent);
 		}
 			break;
-		case R.id.action_sync_validate: {
-			Intent intent = new Intent(SyncService.ACTION);
-			intent.putExtra("sync_action", "validate");
-			startService(intent);
-		}
-			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}

@@ -38,7 +38,8 @@ public class ServerForSync {
 	private static ILog logger = HLogFactory.create(ServerForSync.class);
 	private static final String PORP_KEY_PREFIX = "server.folder.";
 
-	public static void main(String argv[]) throws IOException, TTransportException {
+	public static void main(String argv[]) throws IOException,
+			TTransportException {
 
 		String prop = "remote_sync.properties";
 		if (null != argv && 1 == argv.length) {
@@ -58,6 +59,11 @@ public class ServerForSync {
 	private int port;
 	private String keystore;
 	private Map<String, ServerFolder> folders;
+	private TServer server;
+
+	public int getPort() {
+		return port;
+	}
 
 	public ServerForSync(String propPath) throws IOException {
 		Properties p = PropertiesUtils.load(propPath);
@@ -69,52 +75,78 @@ public class ServerForSync {
 		folders = new HashMap<String, ServerFolder>();
 		for (Object item : p.keySet().toArray()) {
 			if (item.toString().startsWith(PORP_KEY_PREFIX)) {
-				ServerFolder cur = new ServerFolder(item.toString().substring(PORP_KEY_PREFIX.length()),
-						(String) p.get(item));
+				ServerFolder cur = new ServerFolder(item.toString().substring(
+						PORP_KEY_PREFIX.length()), (String) p.get(item));
 				folders.put(cur.getName(), cur);
+				logger.stdout("服务目录:" + cur.getName() + ":From:" + cur.getUrl());
 			}
 		}
 
 		Asserts.check(folders.size() != 0, "can not find any server folders");
 	}
 
-	public void start() throws TTransportException {
+	public synchronized void stop() {
+		if (null != server) {
+			if (!server.getShouldStop()) {
+				server.setShouldStop(true);
+				server.stop();
+				server = null;
+			}
+		}
+	}
+
+	public synchronized void start() throws TTransportException {
+
+		if (null != server) {
+			throw new RuntimeException("Server is start!");
+		}
 
 		SyncFileServerHandler handler = new SyncFileServerHandler(this);
 		SyncFileServer.Processor<SyncFileServerHandler> processor = new SyncFileServer.Processor<SyncFileServerHandler>(
 				handler);
 
 		if (null == this.keystore) {
-			simple(processor, port, type);
+			server = simple(processor, port, type);
 		} else {
-			secure(processor, port, type, keystore);
+			server = secure(processor, port, type, keystore);
 		}
+
+		server.serve();
 	}
 
-	public static void simple(SyncFileServer.Processor<SyncFileServerHandler> processor, int port, String type)
-			throws TTransportException {
+	public static TServer simple(
+			SyncFileServer.Processor<SyncFileServerHandler> processor,
+			int port, String type) throws TTransportException {
 
 		TServer server = null;
 		if ("simple".equals(type)) {
-			TServerTransport serverTransport = new TServerSocket(port, RemoteSyncConfig.getTimeout());
-			server = new TSimpleServer(new TSimpleServer.Args(serverTransport).processor(processor));
-		} else if ("mult_thread".equals(type)) {
-			TServerTransport serverTransport = new TServerSocket(port, RemoteSyncConfig.getTimeout());
-			server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
-		} else if ("nio".equals(type)) {
-			TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(port,
+			TServerTransport serverTransport = new TServerSocket(port,
 					RemoteSyncConfig.getTimeout());
-			server = new THsHaServer(new THsHaServer.Args(serverTransport).processor(processor));
+			server = new TSimpleServer(
+					new TSimpleServer.Args(serverTransport)
+							.processor(processor));
+		} else if ("mult_thread".equals(type)) {
+			TServerTransport serverTransport = new TServerSocket(port,
+					RemoteSyncConfig.getTimeout());
+			server = new TThreadPoolServer(new TThreadPoolServer.Args(
+					serverTransport).processor(processor));
+		} else if ("nio".equals(type)) {
+			TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(
+					port, RemoteSyncConfig.getTimeout());
+			server = new THsHaServer(
+					new THsHaServer.Args(serverTransport).processor(processor));
 		} else {
 			throw new RuntimeException("can not create server by type:" + type);
 		}
 
 		logger.info("Starting the simple server...");
-		server.serve();
+		return server;
 	}
 
-	public static void secure(SyncFileServer.Processor<SyncFileServerHandler> processor, int port, String type,
-			String keystoreConfig) throws TTransportException {
+	public static TServer secure(
+			SyncFileServer.Processor<SyncFileServerHandler> processor,
+			int port, String type, String keystoreConfig)
+			throws TTransportException {
 		/*
 		 * Use TSSLTransportParameters to setup the required SSL parameters. In
 		 * this example we are setting the keystore and the keystore password.
@@ -126,7 +158,8 @@ public class ServerForSync {
 		String keystoreConfigArr[] = keystoreConfig.split("@");
 
 		if (keystoreConfigArr.length != 2) {
-			throw new RuntimeException("server.keystore 格式错误(缺少 @密码):" + keystoreConfig);
+			throw new RuntimeException("server.keystore 格式错误(缺少 @密码):"
+					+ keystoreConfig);
 		}
 
 		String keystore = keystoreConfigArr[0];
@@ -134,7 +167,11 @@ public class ServerForSync {
 		Asserts.check(new File(keystore).exists(), "can not find :" + keystore);
 
 		// The Keystore contains the private key
-		params.setKeyStore(keystore, keystoreConfigArr[1], null, null);
+		if (keystore.endsWith(".bks")) {
+			params.setKeyStore(keystore, keystoreConfigArr[1], "X509", "BKS");
+		} else {
+			params.setKeyStore(keystore, keystoreConfigArr[1], null, null);
+		}
 
 		/*
 		 * Use any of the TSSLTransportFactory to get a server transport with
@@ -146,16 +183,21 @@ public class ServerForSync {
 		 * Note: You need not explicitly call open(). The underlying server
 		 * socket is bound on return from the factory class.
 		 */
-		TServerTransport serverTransport = TSSLTransportFactory.getServerSocket(port, RemoteSyncConfig.getTimeout(),
-				null, params);
+		TServerTransport serverTransport = TSSLTransportFactory
+				.getServerSocket(port, RemoteSyncConfig.getTimeout(), null,
+						params);
 
 		TServer server = null;
 		if ("simple".equals(type)) {
-			server = new TSimpleServer(new TSimpleServer.Args(serverTransport).processor(processor));
+			server = new TSimpleServer(
+					new TSimpleServer.Args(serverTransport)
+							.processor(processor));
 		} else if ("mult_thread".equals(type)) {
-			server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
+			server = new TThreadPoolServer(new TThreadPoolServer.Args(
+					serverTransport).processor(processor));
 		} else {
-			throw new RuntimeException("can not create secure server by type:" + type);
+			throw new RuntimeException("can not create secure server by type:"
+					+ type);
 		}
 
 		// Use this for a multi threaded server
@@ -163,7 +205,7 @@ public class ServerForSync {
 		// TThreadPoolServer.Args(serverTransport).processor(processor));
 
 		logger.info("Starting the secure server...");
-		server.serve();
+		return server;
 	}
 
 	public RemoteFileManage get(String folder) {

@@ -10,9 +10,4 @@
         android:orderInCategory="100"
         android:title="@string/action_sync_stop"/>
     
-    <item
-        android:id="@+id/action_sync_validate"
-        android:orderInCategory="100"
-        android:title="@string/action_sync_validate"/>
-    
 </menu>
