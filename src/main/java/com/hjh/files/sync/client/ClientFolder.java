@@ -111,7 +111,7 @@ public class ClientFolder {
 			String[] exists = target.list();
 			for (RemoteFile item : remotes) {
 				doSync(stop, item, new File(target, item.name()));
-				if (null != exists) {
+				if (RemoteSyncConfig.isCopyRemove() && null != exists) {
 					for (int i = 0; i < exists.length; i++) {
 						if (exists[i] != null && exists[i].equals(item.name())) {
 							exists[i] = null;
@@ -120,7 +120,7 @@ public class ClientFolder {
 					}
 				}
 			}
-			if (null != exists) {
+			if (RemoteSyncConfig.isCopyRemove() && null != exists) {
 				for (int i = 0; i < exists.length; i++) {
 					if (exists[i] != null) {
 						File cur_exist = new File(target, exists[i]);
@@ -249,7 +249,7 @@ public class ClientFolder {
 				String[] exists = target.list();
 				for (RemoteFile item : remotes) {
 					doValidate(item, new File(target, item.name()));
-					if (null != exists) {
+					if (RemoteSyncConfig.isCopyRemove() && null != exists) {
 						for (int i = 0; i < exists.length; i++) {
 							if (exists[i] != null && exists[i].equals(item.name())) {
 								exists[i] = null;
@@ -258,7 +258,7 @@ public class ClientFolder {
 						}
 					}
 				}
-				if (null != exists) {
+				if (RemoteSyncConfig.isCopyRemove() && null != exists) {
 					for (int i = 0; i < exists.length; i++) {
 						if (exists[i] != null) {
 							File cur_exist = new File(target, exists[i]);

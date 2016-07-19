@@ -22,6 +22,8 @@ public class RemoteSyncConfig {
 	private static int timeout = 1000 * 60 * 5;
 
 	private static boolean copy_time = true;
+	
+	private static boolean copy_remove = true;
 
 	private static String copy_type = "cache";
 
@@ -35,6 +37,10 @@ public class RemoteSyncConfig {
 
 	public static int getTimeout() {
 		return timeout;
+	}
+	
+	public static boolean isCopyRemove(){
+		return copy_remove;
 	}
 
 	public static boolean isCopyTime() {
@@ -57,6 +63,10 @@ public class RemoteSyncConfig {
 
 		if (p.containsKey("client.copy.type")) {
 			copy_type = p.getProperty("client.copy.type");
+		}
+		
+		if (p.containsKey("client.copy.remove")) {
+			copy_remove = "true".equals(p.getProperty("client.copy.remove"));
 		}
 	}
 
