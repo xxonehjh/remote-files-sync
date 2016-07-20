@@ -19,6 +19,8 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
 
+import tutorial.SyncFileServer;
+
 import com.hjh.files.sync.common.HLogFactory;
 import com.hjh.files.sync.common.ILog;
 import com.hjh.files.sync.common.RemoteFileManage;
@@ -26,8 +28,6 @@ import com.hjh.files.sync.common.RemoteSyncConfig;
 import com.hjh.files.sync.common.log.LogUtil;
 import com.hjh.files.sync.common.thrift.ThriftClientPool;
 import com.hjh.files.sync.common.util.PropertiesUtils;
-
-import tutorial.SyncFileServer;
 
 public class ServerForSync {
 
@@ -69,6 +69,10 @@ public class ServerForSync {
 		return port;
 	}
 
+	public ServerFolder[] getFolders() {
+		return folders.values().toArray(new ServerFolder[folders.size()]);
+	}
+
 	public ServerForSync(String propPath) throws IOException {
 		Properties p = PropertiesUtils.load(propPath);
 		RemoteSyncConfig.init(p);
@@ -89,15 +93,17 @@ public class ServerForSync {
 		Asserts.check(folders.size() != 0, "can not find any server folders");
 	}
 
-	public synchronized void stop() {
+	public void stop() {
 		if (null != serverInfo) {
-			try {
-				serverInfo.server.stop();
-			} finally {
-				try {
-					serverInfo.transport.close();
-				} finally {
-					serverInfo = null;
+			synchronized (serverInfo) {
+				if (null != serverInfo) {
+					try {
+						logger.stdout("停止server");
+						serverInfo.server.stop();
+						logger.stdout("停止server ok");
+					} finally {
+						serverInfo = null;
+					}
 				}
 			}
 		}

@@ -9,11 +9,21 @@
     tools:context=".MainActivity" >
 
     <EditText
+        android:id="@+id/text_for_server_info"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:ems="10"
+        android:inputType="textMultiLine" >
+    </EditText>
+    
+    <EditText
         android:id="@+id/text_for_output"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
+        android:layout_below="@+id/text_for_server_info"
         android:ems="10"
         android:focusable="false"
         android:focusableInTouchMode="false"

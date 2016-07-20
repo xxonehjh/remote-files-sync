@@ -12,6 +12,7 @@ import android.widget.EditText;
 
 public class MainActivity extends Activity {
 
+	private EditText serverInfoOut;
 	private EditText out;
 	private MsgReceiver msgReceiver;
 
@@ -19,12 +20,18 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		serverInfoOut = (EditText) this.findViewById(R.id.text_for_server_info);
 		out = (EditText) this.findViewById(R.id.text_for_output);
 
 		msgReceiver = new MsgReceiver();
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(HLog.RECEIVER_ID);
 		registerReceiver(msgReceiver, intentFilter);
+		
+		
+		Intent intent = new Intent(SyncService.ACTION);
+		intent.putExtra("sync_action", "get_server_info");
+		startService(intent);
 	}
 
 	protected void onDestroy() {
@@ -41,6 +48,15 @@ public class MainActivity extends Activity {
 		});
 	}
 
+	protected void updateServerInfo(final String msg) {
+		MainActivity.this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				serverInfoOut.setText(msg);
+			}
+		});
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -52,7 +68,12 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			updateState(intent.getStringExtra("log"));
+			if (intent.hasExtra("server_info")) {
+				updateServerInfo(intent.getStringExtra("server_info"));
+			}
+			if (intent.hasExtra("log")) {
+				updateState(intent.getStringExtra("log"));
+			}
 		}
 
 	}

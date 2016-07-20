@@ -15,6 +15,8 @@ public class HLog extends com.hjh.files.sync.common.ILog {
 
 	private static Intent intent = new Intent(RECEIVER_ID);
 
+	private static Intent intent_for_server_info = new Intent(RECEIVER_ID);
+
 	public static Service service;
 
 	private void writeLogFile(String level, String msg) {
@@ -24,6 +26,13 @@ public class HLog extends com.hjh.files.sync.common.ILog {
 		if (null != service) {
 			intent.putExtra("log", full_msg);
 			service.sendBroadcast(intent);
+		}
+	}
+
+	public static void sendServerInfo(String info) {
+		if (null != service) {
+			intent_for_server_info.putExtra("server_info", info);
+			service.sendBroadcast(intent_for_server_info);
 		}
 	}
 
