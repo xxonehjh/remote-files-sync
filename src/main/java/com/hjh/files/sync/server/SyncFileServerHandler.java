@@ -39,7 +39,7 @@ public class SyncFileServerHandler implements SyncFileServer.Iface {
 
 	@Override
 	public List<RemoteFileInfo> listFiles(String folder, String path) throws TException {
-		logger.info(String.format("list files [%s] [%s]", folder, path));
+		logger.info(String.format("list files [%s] [%s]", folder, path == null ? "ROOT" : path));
 		List<RemoteFileInfo> result = new ArrayList<RemoteFileInfo>();
 		RemoteFile[] files = sync.get(folder).list(path);
 		if (null != files) {
