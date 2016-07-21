@@ -3,11 +3,13 @@
     <item
         android:id="@+id/action_sync"
         android:orderInCategory="100"
+        android:showAsAction="never"
         android:title="@string/action_sync"/>
     
     <item
         android:id="@+id/action_sync_stop"
         android:orderInCategory="100"
+        android:showAsAction="never"
         android:title="@string/action_sync_stop"/>
     
 </menu>
