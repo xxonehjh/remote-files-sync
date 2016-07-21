@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">远程数据同步</string>
+    <string name="app_name">数据服务</string>
     <string name="action_sync">启动</string>
     <string name="action_sync_stop">停止</string>
     <string name="action_sync_validate">校验</string>
