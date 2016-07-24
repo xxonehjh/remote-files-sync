@@ -76,7 +76,7 @@ public class ServerForSync {
 	public ServerForSync(String propPath) throws IOException {
 		Properties p = PropertiesUtils.load(propPath);
 		RemoteSyncConfig.init(p);
-		port = Integer.parseInt(p.getProperty("server.port"));
+		port = Integer.parseInt(p.getProperty("server.port", "9958"));
 		type = p.getProperty("server.type", "simple");
 		keystore = p.getProperty("server.keystore");
 
@@ -90,7 +90,9 @@ public class ServerForSync {
 			}
 		}
 
-		Asserts.check(folders.size() != 0, "can not find any server folders");
+		if (folders.size() == 0) {
+			logger.info("can not find any server folders");
+		}
 	}
 
 	public void stop() {
