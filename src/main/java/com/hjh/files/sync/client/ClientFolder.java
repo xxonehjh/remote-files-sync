@@ -21,14 +21,16 @@ public class ClientFolder {
 
 	private RemoteFileManage fromManage;
 	private String store_folder;
+	private String workspace;
 	private String name;
 	private String url;
 	private FileCopy fileCopy;
 	private FileInfoRecorder infoRecorder;
 
-	public ClientFolder(String name, String store_folder, String url, int block_size) {
+	public ClientFolder(String name, String store_folder, String workspace,String url, int block_size) {
 		this.name = name;
 		this.store_folder = store_folder;
+		this.workspace = workspace;
 		this.url = url;
 		if ("cache".equals(RemoteSyncConfig.getCopyType())) {
 			this.fileCopy = new FileCopyByCache(this, block_size);
@@ -58,6 +60,10 @@ public class ClientFolder {
 
 	public String getStore_folder() {
 		return store_folder;
+	}
+	
+	public String getWorkspace(){
+		return this.workspace;
 	}
 
 	public void setStore_folder(String store_folder) {

@@ -44,6 +44,7 @@ public class ClientForSync {
 
 	private long interval;
 	private String store;
+	private String workspace;
 	private int block_size;
 	private List<ClientFolder> folders;
 	private ClientSyncRunner runner;
@@ -85,6 +86,9 @@ public class ClientForSync {
 		Asserts.notBlank(store, "can not found config for client.store");
 		Asserts.check(new File(store).isDirectory(), "not exist store folder:" + store);
 
+		workspace = p.getProperty("client.workspace", store);
+		Asserts.check(new File(workspace).isDirectory(), "not exist workspace folder:" + workspace);
+
 		interval = Long.parseLong(p.getProperty("client.sync.interval", "10000"));
 
 		Asserts.check(interval >= 0, "client.sync.interval must great then 0");
@@ -97,7 +101,7 @@ public class ClientForSync {
 		folders = new ArrayList<ClientFolder>();
 		for (Object item : p.keySet().toArray()) {
 			if (item.toString().startsWith(PORP_KEY_PREFIX)) {
-				folders.add(new ClientFolder(item.toString().substring(PORP_KEY_PREFIX.length()), store,
+				folders.add(new ClientFolder(item.toString().substring(PORP_KEY_PREFIX.length()), store, this.workspace,
 						(String) p.get(item), block_size));
 			}
 		}
