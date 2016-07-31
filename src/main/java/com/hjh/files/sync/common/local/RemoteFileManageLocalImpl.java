@@ -44,7 +44,7 @@ public class RemoteFileManageLocalImpl implements RemoteFileManage {
 		}
 	}
 
-	public byte[] part(String filePath, int part, int part_size) {
+	public byte[] part(String filePath, long part, long part_size) {
 		RemoteSyncConfig.checkBockSize(part_size);
 		long start = part_size * part;
 		long end = start + part_size;

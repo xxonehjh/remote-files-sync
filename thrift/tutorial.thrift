@@ -129,7 +129,7 @@ service SyncFileServer {
    
    string md5(1:string folder, 2:string path),
    
-   binary part(1:string folder, 2:string path, 3:i32 part , 4:i32 part_size),
+   binary part(1:string folder, 2:string path, 3:i64 part , 4:i64 part_size),
    
    list<RemoteFileInfo> listFiles(1:string folder, 2:string path)
 

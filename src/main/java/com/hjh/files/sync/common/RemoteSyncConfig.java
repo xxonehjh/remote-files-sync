@@ -6,7 +6,7 @@ public class RemoteSyncConfig {
 
 	private static final long max_block_size = 1024 * 1024 * 5;
 
-	public static void checkBockSize(int block_size) {
+	public static void checkBockSize(long block_size) {
 		if (block_size <= 0) {
 			throw new RuntimeException("part_size must great then 0 K");
 		}

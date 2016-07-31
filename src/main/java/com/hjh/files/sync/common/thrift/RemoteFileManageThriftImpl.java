@@ -45,7 +45,7 @@ public class RemoteFileManageThriftImpl implements RemoteFileManage {
 		}
 	}
 
-	public byte[] part(String file, int part, int part_size)
+	public byte[] part(String file, long part, long part_size)
 	{
 		try {
 			return client().part(folder, file, part, part_size).array();

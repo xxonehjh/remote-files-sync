@@ -30,7 +30,7 @@ public class SyncFileServerHandler implements SyncFileServer.Iface {
 	}
 
 	@Override
-	public ByteBuffer part(String folder, String path, int part, int part_size) throws TException {
+	public ByteBuffer part(String folder, String path, long part, long part_size) throws TException {
 		logger.info(String.format("part [%s] [%s] [%d]", folder, path, part));
 		byte[] partData = sync.get(folder).part(path, part, part_size);
 		logger.info(String.format("send part data %d", partData.length));
