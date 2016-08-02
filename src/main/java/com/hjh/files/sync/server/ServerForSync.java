@@ -92,7 +92,7 @@ public class ServerForSync {
 
 	public void stop() {
 		if (null != tserver) {
-			synchronized (tserver) {
+			synchronized (this) {
 				if (null != tserver) {
 					try {
 						logger.stdout("停止server");
@@ -106,20 +106,22 @@ public class ServerForSync {
 		}
 	}
 
-	public synchronized void start() throws TTransportException {
+	public void start() throws TTransportException {
 
-		if (null != tserver) {
-			throw new RuntimeException("Server is start!");
-		}
+		synchronized (this) {
+			if (null != tserver) {
+				throw new RuntimeException("Server is start!");
+			}
 
-		SyncFileServerHandler handler = new SyncFileServerHandler(this);
-		SyncFileServer.Processor<SyncFileServerHandler> processor = new SyncFileServer.Processor<SyncFileServerHandler>(
-				handler);
+			SyncFileServerHandler handler = new SyncFileServerHandler(this);
+			SyncFileServer.Processor<SyncFileServerHandler> processor = new SyncFileServer.Processor<SyncFileServerHandler>(
+					handler);
 
-		if (null == this.keystore) {
-			tserver = simple(processor, port, type);
-		} else {
-			tserver = secure(processor, port, type, keystore);
+			if (null == this.keystore) {
+				tserver = simple(processor, port, type);
+			} else {
+				tserver = secure(processor, port, type, keystore);
+			}
 		}
 
 		tserver.serve();
