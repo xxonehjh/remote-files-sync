@@ -19,7 +19,7 @@ remote_sync.jar 下载地址：https://github.com/xxonehjh/remote-files-sync/raw
 config.properties 为配置参数
 
 ####三.配置说明
-````
+````properties
 
 #################server
 
@@ -66,13 +66,13 @@ config.timeout=300000
 ````
 
 #####简单客户端配置样例
-````
+````properties
 client.folder.sync_folder=from:ip:端口/服务目录
 client.store=保存文件路径
 ````
 
 #####简单服务端配置样例
-````
+````properties
 server.type=simple
 server.port=9958
 server.folder.sync_folder=本地文件路径
@@ -81,7 +81,7 @@ server.folder.sync_folder=本地文件路径
 ####三.安全性
 服务端和客户端分别配置安全证书【路径格式： key路径@密码】，配置了之后，数据会采用加密传输
 安全证书生成方式：http://www.code234.com/b5d5c7e0e44f0c4b42720bd1bf5cd4ce_detail.html
-````
+````properties
 server.keystore=D:/hjh/test_sync/.keystore@thrift
 client.truststore=D:/hjh/test_sync/.truststore@thrift
 ````
