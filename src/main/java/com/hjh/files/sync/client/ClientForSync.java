@@ -118,6 +118,10 @@ public class ClientForSync {
 	public boolean isRunning() {
 		return runner.isRunning();
 	}
+	
+	public void sync(){
+		runner.sync();
+	}
 
 	public void validate() throws IOException {
 		for (ClientFolder item : folders) {
@@ -127,6 +131,10 @@ public class ClientForSync {
 
 	public static void validate(String config) throws IOException {
 		new ClientForSync(config).validate();
+	}
+	
+	public static void sync(String config) throws IOException {
+		new ClientForSync(config).sync();
 	}
 
 }

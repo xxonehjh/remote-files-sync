@@ -74,6 +74,10 @@ public class ClientSyncRunner implements StopAble {
 			}
 		}
 	}
+	
+	public void sync(){
+		doSync();
+	}
 
 	protected void doSync() {
 		for (ClientFolder folder : client.getFolders()) {
