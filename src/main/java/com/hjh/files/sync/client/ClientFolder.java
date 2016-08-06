@@ -2,6 +2,8 @@ package com.hjh.files.sync.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.util.Asserts;
@@ -27,7 +29,9 @@ public class ClientFolder {
 	private FileCopy fileCopy;
 	private FileInfoRecorder infoRecorder;
 
-	public ClientFolder(String name, String store_folder, String workspace,String url, int block_size) {
+	private String store_name;
+
+	public ClientFolder(String name, String store_folder, String workspace, String url, int block_size) {
 		this.name = name;
 		this.store_folder = store_folder;
 		this.workspace = workspace;
@@ -40,6 +44,24 @@ public class ClientFolder {
 			throw new RuntimeException("error client.copy.type :" + RemoteSyncConfig.getCopyType());
 		}
 		this.infoRecorder = new FileInfoRecorder(this);
+
+		Map<String, String> params = new HashMap<String, String>();
+		if (this.url.indexOf("?") > 0) {
+			String params_str[] = this.url.split("\\?");
+			this.url = params_str[0];
+			params_str = params_str[1].split("\\&");
+			for (String item : params_str) {
+				String[] key_value = item.split("=");
+				params.put(key_value[0], key_value[1]);
+				logger.info(String.format("[Param]%s=%s", key_value[0], key_value[1]));
+			}
+		}
+
+		if (params.containsKey("store")) {
+			store_name = params.get("store");
+		} else {
+			store_name = name;
+		}
 	}
 
 	public String getName() {
@@ -61,8 +83,8 @@ public class ClientFolder {
 	public String getStore_folder() {
 		return store_folder;
 	}
-	
-	public String getWorkspace(){
+
+	public String getWorkspace() {
 		return this.workspace;
 	}
 
@@ -72,7 +94,7 @@ public class ClientFolder {
 
 	public void sync(StopAble stop) throws IOException {
 
-		String store_path = new File(new File(store_folder), name).getCanonicalPath();
+		String store_path = new File(new File(store_folder), store_name).getCanonicalPath();
 		if (null == fromManage) {
 			fromManage = RemoteFileFactory.queryManage(url);
 		}
@@ -223,7 +245,7 @@ public class ClientFolder {
 	}
 
 	public void validate() throws IOException {
-		String store_path = new File(new File(store_folder), name).getCanonicalPath();
+		String store_path = new File(new File(store_folder), store_name).getCanonicalPath();
 		if (null == fromManage) {
 			fromManage = RemoteFileFactory.queryManage(url);
 		}
