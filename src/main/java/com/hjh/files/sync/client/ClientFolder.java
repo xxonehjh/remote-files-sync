@@ -30,20 +30,14 @@ public class ClientFolder {
 	private FileInfoRecorder infoRecorder;
 
 	private String store_name;
+	private boolean copy_remove = RemoteSyncConfig.isCopyRemove();
+	private boolean copy_time = RemoteSyncConfig.isCopyTime();
 
 	public ClientFolder(String name, String store_folder, String workspace, String url, int block_size) {
 		this.name = name;
 		this.store_folder = store_folder;
 		this.workspace = workspace;
 		this.url = url;
-		if ("cache".equals(RemoteSyncConfig.getCopyType())) {
-			this.fileCopy = new FileCopyByCache(this, block_size);
-		} else if ("simple".equals(RemoteSyncConfig.getCopyType())) {
-			this.fileCopy = new FileCopyBySimple(this, block_size);
-		} else {
-			throw new RuntimeException("error client.copy.type :" + RemoteSyncConfig.getCopyType());
-		}
-		this.infoRecorder = new FileInfoRecorder(this);
 
 		Map<String, String> params = new HashMap<String, String>();
 		if (this.url.indexOf("?") > 0) {
@@ -62,6 +56,26 @@ public class ClientFolder {
 		} else {
 			store_name = name;
 		}
+
+		String copy_type = params.containsKey("type") ? params.get("type") : RemoteSyncConfig.getCopyType();
+
+		if (params.containsKey("remove")) {
+			copy_remove = "true".equals(params.get("remove"));
+		}
+
+		if (params.containsKey("time")) {
+			copy_time = "true".equals(params.get("time"));
+		}
+
+		if ("cache".equals(copy_type)) {
+			this.fileCopy = new FileCopyByCache(this, block_size);
+		} else if ("simple".equals(copy_type)) {
+			this.fileCopy = new FileCopyBySimple(this, block_size);
+		} else {
+			throw new RuntimeException("error client.copy.type :" + RemoteSyncConfig.getCopyType());
+		}
+		this.infoRecorder = new FileInfoRecorder(this);
+
 	}
 
 	public String getName() {
@@ -139,7 +153,7 @@ public class ClientFolder {
 			String[] exists = target.list();
 			for (RemoteFile item : remotes) {
 				doSync(stop, item, new File(target, item.name()));
-				if (RemoteSyncConfig.isCopyRemove() && null != exists) {
+				if (this.copy_remove && null != exists) {
 					for (int i = 0; i < exists.length; i++) {
 						if (exists[i] != null && exists[i].equals(item.name())) {
 							exists[i] = null;
@@ -190,7 +204,7 @@ public class ClientFolder {
 		}
 
 		if (null != from) {
-			if (RemoteSyncConfig.isCopyTime() && !isSameTime(from, target)) {
+			if (this.copy_time && !isSameTime(from, target)) {
 				target.setLastModified(from.lastModify());
 			}
 			if (!infoRecorder.isSame(from)) {
@@ -237,7 +251,7 @@ public class ClientFolder {
 			return true;
 		}
 
-		if (RemoteSyncConfig.isCopyTime() && isSameTime(from, to)) {
+		if (this.copy_time && isSameTime(from, to)) {
 			return true;
 		}
 
@@ -277,7 +291,7 @@ public class ClientFolder {
 				String[] exists = target.list();
 				for (RemoteFile item : remotes) {
 					doValidate(item, new File(target, item.name()));
-					if (RemoteSyncConfig.isCopyRemove() && null != exists) {
+					if (this.copy_remove && null != exists) {
 						for (int i = 0; i < exists.length; i++) {
 							if (exists[i] != null && exists[i].equals(item.name())) {
 								exists[i] = null;
