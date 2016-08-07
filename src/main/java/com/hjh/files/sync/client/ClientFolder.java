@@ -150,32 +150,40 @@ public class ClientFolder {
 				logger.stdout(String.format("sync folder[%s] %s => %s", name, path, target.getAbsolutePath()));
 				Asserts.check(target.mkdir(), "create folder fail : " + target.getAbsolutePath());
 			}
-			String[] exists = target.list();
-			for (RemoteFile item : remotes) {
-				doSync(stop, item, new File(target, item.name()));
-				if (this.copy_remove && null != exists) {
+			if (this.copy_remove) {
+				String[] exists = target.list();
+				for (RemoteFile item : remotes) {
+					doSync(stop, item, new File(target, item.name()));
+					if (null != exists) {
+						for (int i = 0; i < exists.length; i++) {
+							if (exists[i] != null && exists[i].equals(item.name())) {
+								exists[i] = null;
+								break;
+							}
+						}
+					}
+				}
+				if (null != exists) {
 					for (int i = 0; i < exists.length; i++) {
-						if (exists[i] != null && exists[i].equals(item.name())) {
-							exists[i] = null;
-							break;
+						if (exists[i] != null) {
+							File cur_exist = new File(target, exists[i]);
+							if (cur_exist.isDirectory()) {
+								logger.stdout("remove directory:" + cur_exist.getAbsolutePath());
+								FileUtils.deleteDirectory(cur_exist);
+							} else {
+								logger.stdout("remove file:" + cur_exist.getAbsolutePath());
+								Asserts.check(cur_exist.delete(),
+										"can not delete file :" + cur_exist.getAbsolutePath());
+							}
 						}
 					}
 				}
-			}
-			if (RemoteSyncConfig.isCopyRemove() && null != exists) {
-				for (int i = 0; i < exists.length; i++) {
-					if (exists[i] != null) {
-						File cur_exist = new File(target, exists[i]);
-						if (cur_exist.isDirectory()) {
-							logger.stdout("remove directory:" + cur_exist.getAbsolutePath());
-							FileUtils.deleteDirectory(cur_exist);
-						} else {
-							logger.stdout("remove file:" + cur_exist.getAbsolutePath());
-							Asserts.check(cur_exist.delete(), "can not delete file :" + cur_exist.getAbsolutePath());
-						}
-					}
+			} else {
+				for (RemoteFile item : remotes) {
+					doSync(stop, item, new File(target, item.name()));
 				}
 			}
+
 		} else { // 文件同步
 			if (!isSame(from, target)) {
 				logger.stdout(String.format("sync file[%s] %s => %s", name, from.path(), target.getAbsolutePath()));
@@ -288,24 +296,30 @@ public class ClientFolder {
 			} else if (!target.exists()) {
 				logger.stdout("can not found folder:" + target.getAbsolutePath());
 			} else {
-				String[] exists = target.list();
-				for (RemoteFile item : remotes) {
-					doValidate(item, new File(target, item.name()));
-					if (this.copy_remove && null != exists) {
-						for (int i = 0; i < exists.length; i++) {
-							if (exists[i] != null && exists[i].equals(item.name())) {
-								exists[i] = null;
-								break;
+				if (this.copy_remove) {
+					String[] exists = target.list();
+					for (RemoteFile item : remotes) {
+						doValidate(item, new File(target, item.name()));
+						if (null != exists) {
+							for (int i = 0; i < exists.length; i++) {
+								if (exists[i] != null && exists[i].equals(item.name())) {
+									exists[i] = null;
+									break;
+								}
 							}
 						}
 					}
-				}
-				if (RemoteSyncConfig.isCopyRemove() && null != exists) {
-					for (int i = 0; i < exists.length; i++) {
-						if (exists[i] != null) {
-							File cur_exist = new File(target, exists[i]);
-							logger.stdout("must remove:" + cur_exist.getAbsolutePath());
+					if (null != exists) {
+						for (int i = 0; i < exists.length; i++) {
+							if (exists[i] != null) {
+								File cur_exist = new File(target, exists[i]);
+								logger.stdout("must remove:" + cur_exist.getAbsolutePath());
+							}
 						}
+					}
+				} else {
+					for (RemoteFile item : remotes) {
+						doValidate(item, new File(target, item.name()));
 					}
 				}
 			}
